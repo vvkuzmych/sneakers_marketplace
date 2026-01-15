@@ -1,0 +1,237 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/payment";
+
+import "google/protobuf/timestamp.proto";
+
+// Payment Service
+service PaymentService {
+    // Payment processing
+    rpc CreatePaymentIntent(CreatePaymentIntentRequest) returns (CreatePaymentIntentResponse);
+    rpc ConfirmPayment(ConfirmPaymentRequest) returns (ConfirmPaymentResponse);
+    rpc GetPayment(GetPaymentRequest) returns (GetPaymentResponse);
+    rpc ListPayments(ListPaymentsRequest) returns (ListPaymentsResponse);
+    
+    // Refunds
+    rpc CreateRefund(CreateRefundRequest) returns (CreateRefundResponse);
+    rpc GetRefundStatus(GetRefundStatusRequest) returns (GetRefundStatusResponse);
+    
+    // Webhooks
+    rpc HandleStripeWebhook(HandleStripeWebhookRequest) returns (HandleStripeWebhookResponse);
+    
+    // Payouts (Stripe Connect for sellers)
+    rpc CreatePayout(CreatePayoutRequest) returns (CreatePayoutResponse);
+    rpc GetPayout(GetPayoutRequest) returns (GetPayoutResponse);
+    rpc ListPayouts(ListPayoutsRequest) returns (ListPayoutsResponse);
+}
+
+// Payment message
+message Payment {
+    int64 id = 1;
+    string payment_id = 2;
+    
+    // Relations
+    int64 order_id = 3;
+    int64 user_id = 4;
+    
+    // Stripe details
+    string stripe_payment_intent_id = 5;
+    string stripe_charge_id = 6;
+    string stripe_customer_id = 7;
+    
+    // Amount
+    double amount = 8;
+    string currency = 9;
+    
+    // Status
+    string status = 10;
+    
+    // Payment method
+    string payment_method = 11;
+    string card_last4 = 12;
+    string card_brand = 13;
+    
+    // Refund
+    double refunded_amount = 14;
+    string refund_reason = 15;
+    
+    // Timestamps
+    google.protobuf.Timestamp processed_at = 16;
+    google.protobuf.Timestamp refunded_at = 17;
+    
+    google.protobuf.Timestamp created_at = 18;
+    google.protobuf.Timestamp updated_at = 19;
+}
+
+// Payout message
+message Payout {
+    int64 id = 1;
+    string payout_id = 2;
+    
+    // Relations
+    int64 order_id = 3;
+    int64 seller_id = 4;
+    int64 payment_id = 5;
+    
+    // Stripe Connect
+    string stripe_transfer_id = 6;
+    string stripe_account_id = 7;
+    
+    // Amount
+    double amount = 8;
+    string currency = 9;
+    
+    // Status
+    string status = 10;
+    
+    // Failure info
+    string failure_reason = 11;
+    
+    // Timestamps
+    google.protobuf.Timestamp processed_at = 12;
+    google.protobuf.Timestamp created_at = 13;
+    google.protobuf.Timestamp updated_at = 14;
+}
+
+// ========== Create Payment Intent ==========
+
+message CreatePaymentIntentRequest {
+    int64 order_id = 1;
+    int64 user_id = 2;
+    double amount = 3;
+    string currency = 4;  // Default: USD
+    
+    // Optional: Existing Stripe customer
+    string stripe_customer_id = 5;
+}
+
+message CreatePaymentIntentResponse {
+    Payment payment = 1;
+    string client_secret = 2;  // For frontend Stripe.js
+    string error = 3;
+}
+
+// ========== Confirm Payment ==========
+
+message ConfirmPaymentRequest {
+    int64 payment_id = 1;
+    string stripe_payment_intent_id = 2;
+}
+
+message ConfirmPaymentResponse {
+    Payment payment = 1;
+    string error = 2;
+}
+
+// ========== Get Payment ==========
+
+message GetPaymentRequest {
+    int64 payment_id = 1;
+}
+
+message GetPaymentResponse {
+    Payment payment = 1;
+    string error = 2;
+}
+
+// ========== List Payments ==========
+
+message ListPaymentsRequest {
+    int64 user_id = 1;  // Optional filter
+    string status = 2;   // Optional filter
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message ListPaymentsResponse {
+    repeated Payment payments = 1;
+    int64 total = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+    string error = 5;
+}
+
+// ========== Create Refund ==========
+
+message CreateRefundRequest {
+    int64 payment_id = 1;
+    double amount = 2;  // Optional: partial refund
+    string reason = 3;   // Required
+}
+
+message CreateRefundResponse {
+    Payment payment = 1;
+    string stripe_refund_id = 2;
+    string error = 3;
+}
+
+// ========== Get Refund Status ==========
+
+message GetRefundStatusRequest {
+    int64 payment_id = 1;
+}
+
+message GetRefundStatusResponse {
+    double refunded_amount = 1;
+    string refund_reason = 2;
+    google.protobuf.Timestamp refunded_at = 3;
+    string error = 4;
+}
+
+// ========== Handle Stripe Webhook ==========
+
+message HandleStripeWebhookRequest {
+    bytes payload = 1;
+    string signature = 2;
+}
+
+message HandleStripeWebhookResponse {
+    bool success = 1;
+    string event_type = 2;
+    string error = 3;
+}
+
+// ========== Create Payout ==========
+
+message CreatePayoutRequest {
+    int64 order_id = 1;
+    int64 seller_id = 2;
+    int64 payment_id = 3;
+    double amount = 4;
+    string stripe_account_id = 5;  // Seller's Stripe Connect account
+}
+
+message CreatePayoutResponse {
+    Payout payout = 1;
+    string error = 2;
+}
+
+// ========== Get Payout ==========
+
+message GetPayoutRequest {
+    int64 payout_id = 1;
+}
+
+message GetPayoutResponse {
+    Payout payout = 1;
+    string error = 2;
+}
+
+// ========== List Payouts ==========
+
+message ListPayoutsRequest {
+    int64 seller_id = 1;  // Optional filter
+    string status = 2;     // Optional filter
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message ListPayoutsResponse {
+    repeated Payout payouts = 1;
+    int64 total = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+    string error = 5;
+}
