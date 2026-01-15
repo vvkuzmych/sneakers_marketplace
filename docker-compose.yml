@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL - Main database
   postgres:
@@ -10,7 +8,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: sneakers_marketplace
     ports:
-      - "5432:5432"
+      - "5435:5432"  # Changed to 5435 to avoid conflict
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -26,7 +24,7 @@ services:
     image: redis:7-alpine
     container_name: sneakers_redis
     ports:
-      - "6379:6379"
+      - "6380:6379"  # Changed to 6380 to avoid conflict
     volumes:
       - redis_data:/data
     healthcheck:
@@ -45,7 +43,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - "2182:2181"  # Changed to 2182 to avoid conflict
     volumes:
       - zookeeper_data:/var/lib/zookeeper/data
       - zookeeper_logs:/var/lib/zookeeper/log
@@ -59,13 +57,13 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
-      - "9101:9101"
+      - "9094:9092"  # Changed to 9094 to avoid conflict
+      - "9102:9101"  # Changed to 9102 to avoid conflict
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9094
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -119,7 +117,7 @@ services:
 
   # Consul - Service discovery
   consul:
-    image: consul:1.16
+    image: hashicorp/consul:1.17
     container_name: sneakers_consul
     ports:
       - "8500:8500"
@@ -172,7 +170,7 @@ services:
       - "6831:6831/udp"
       - "6832:6832/udp"
       - "5778:5778"
-      - "16686:16686"  # UI
+      - "16687:16686"  # UI (changed port to avoid conflict)
       - "14268:14268"
       - "14250:14250"
       - "9411:9411"
