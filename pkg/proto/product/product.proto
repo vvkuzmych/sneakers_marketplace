@@ -1,0 +1,250 @@
+syntax = "proto3";
+
+package product;
+
+option go_package = "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/product";
+
+// ProductService handles product catalog and inventory management
+service ProductService {
+  // Product CRUD
+  rpc CreateProduct(CreateProductRequest) returns (CreateProductResponse);
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  rpc ListProducts(ListProductsRequest) returns (ListProductsResponse);
+  rpc UpdateProduct(UpdateProductRequest) returns (UpdateProductResponse);
+  rpc DeleteProduct(DeleteProductRequest) returns (DeleteProductResponse);
+  
+  // Search
+  rpc SearchProducts(SearchProductsRequest) returns (SearchProductsResponse);
+  
+  // Images
+  rpc AddProductImage(AddProductImageRequest) returns (AddProductImageResponse);
+  rpc DeleteProductImage(DeleteProductImageRequest) returns (DeleteProductImageResponse);
+  
+  // Inventory (Sizes)
+  rpc AddSize(AddSizeRequest) returns (AddSizeResponse);
+  rpc GetAvailableSizes(GetAvailableSizesRequest) returns (GetAvailableSizesResponse);
+  rpc UpdateInventory(UpdateInventoryRequest) returns (UpdateInventoryResponse);
+  rpc ReserveInventory(ReserveInventoryRequest) returns (ReserveInventoryResponse);
+  rpc ReleaseInventory(ReleaseInventoryRequest) returns (ReleaseInventoryResponse);
+}
+
+// Messages
+
+message Product {
+  int64 id = 1;
+  string sku = 2;
+  string name = 3;
+  string brand = 4;
+  string model = 5;
+  string color = 6;
+  string description = 7;
+  string category = 8;
+  int64 release_year = 9;
+  double retail_price = 10;
+  bool is_active = 11;
+  string created_at = 12;
+  string updated_at = 13;
+  repeated ProductImage images = 14;
+  repeated Size sizes = 15;
+}
+
+message ProductImage {
+  int64 id = 1;
+  int64 product_id = 2;
+  string image_url = 3;
+  string alt_text = 4;
+  int32 display_order = 5;
+  bool is_primary = 6;
+  string created_at = 7;
+}
+
+message Size {
+  int64 id = 1;
+  int64 product_id = 2;
+  string size = 3;
+  int32 quantity = 4;
+  int32 reserved = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+message InventoryTransaction {
+  int64 id = 1;
+  int64 size_id = 2;
+  string transaction_type = 3; // addition, sale, reservation, release
+  int32 quantity_change = 4;
+  int32 quantity_before = 5;
+  int32 quantity_after = 6;
+  string reference_id = 7;
+  string notes = 8;
+  string created_at = 9;
+}
+
+// CreateProduct
+message CreateProductRequest {
+  string sku = 1;
+  string name = 2;
+  string brand = 3;
+  string model = 4;
+  string color = 5;
+  string description = 6;
+  string category = 7;
+  int64 release_year = 8;
+  double retail_price = 9;
+}
+
+message CreateProductResponse {
+  Product product = 1;
+  string error = 2;
+}
+
+// GetProduct
+message GetProductRequest {
+  int64 product_id = 1;
+}
+
+message GetProductResponse {
+  Product product = 1;
+  string error = 2;
+}
+
+// ListProducts
+message ListProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string category = 3;
+  string brand = 4;
+  bool active_only = 5;
+}
+
+message ListProductsResponse {
+  repeated Product products = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  string error = 5;
+}
+
+// UpdateProduct
+message UpdateProductRequest {
+  int64 product_id = 1;
+  string name = 2;
+  string brand = 3;
+  string model = 4;
+  string color = 5;
+  string description = 6;
+  string category = 7;
+  int64 release_year = 8;
+  double retail_price = 9;
+  bool is_active = 10;
+}
+
+message UpdateProductResponse {
+  Product product = 1;
+  string error = 2;
+}
+
+// DeleteProduct
+message DeleteProductRequest {
+  int64 product_id = 1;
+}
+
+message DeleteProductResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// SearchProducts
+message SearchProductsRequest {
+  string query = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+}
+
+message SearchProductsResponse {
+  repeated Product products = 1;
+  int64 total = 2;
+  string error = 3;
+}
+
+// AddProductImage
+message AddProductImageRequest {
+  int64 product_id = 1;
+  string image_url = 2;
+  string alt_text = 3;
+  int32 display_order = 4;
+  bool is_primary = 5;
+}
+
+message AddProductImageResponse {
+  ProductImage image = 1;
+  string error = 2;
+}
+
+// DeleteProductImage
+message DeleteProductImageRequest {
+  int64 image_id = 1;
+}
+
+message DeleteProductImageResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// AddSize
+message AddSizeRequest {
+  int64 product_id = 1;
+  string size = 2;
+  int32 quantity = 3;
+}
+
+message AddSizeResponse {
+  Size size = 1;
+  string error = 2;
+}
+
+// GetAvailableSizes
+message GetAvailableSizesRequest {
+  int64 product_id = 1;
+}
+
+message GetAvailableSizesResponse {
+  repeated Size sizes = 1;
+  string error = 2;
+}
+
+// UpdateInventory
+message UpdateInventoryRequest {
+  int64 size_id = 1;
+  int32 quantity = 2;
+  string notes = 3;
+}
+
+message UpdateInventoryResponse {
+  Size size = 1;
+  string error = 2;
+}
+
+// ReserveInventory
+message ReserveInventoryRequest {
+  int64 size_id = 1;
+  int32 quantity = 2;
+  string order_id = 3;
+}
+
+message ReserveInventoryResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// ReleaseInventory
+message ReleaseInventoryRequest {
+  int64 size_id = 1;
+  int32 quantity = 2;
+  string order_id = 3;
+}
+
+message ReleaseInventoryResponse {
+  bool success = 1;
+  string error = 2;
+}
