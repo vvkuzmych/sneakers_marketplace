@@ -1,0 +1,270 @@
+syntax = "proto3";
+
+package bidding;
+
+option go_package = "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/bidding";
+
+// BiddingService handles bid/ask system and matching engine
+service BiddingService {
+  // Bid operations
+  rpc PlaceBid(PlaceBidRequest) returns (PlaceBidResponse);
+  rpc GetBid(GetBidRequest) returns (GetBidResponse);
+  rpc GetUserBids(GetUserBidsRequest) returns (GetUserBidsResponse);
+  rpc GetProductBids(GetProductBidsRequest) returns (GetProductBidsResponse);
+  rpc CancelBid(CancelBidRequest) returns (CancelBidResponse);
+  
+  // Ask operations
+  rpc PlaceAsk(PlaceAskRequest) returns (PlaceAskResponse);
+  rpc GetAsk(GetAskRequest) returns (GetAskResponse);
+  rpc GetUserAsks(GetUserAsksRequest) returns (GetUserAsksResponse);
+  rpc GetProductAsks(GetProductAsksRequest) returns (GetProductAsksResponse);
+  rpc CancelAsk(CancelAskRequest) returns (CancelAskResponse);
+  
+  // Market data
+  rpc GetHighestBid(GetHighestBidRequest) returns (GetHighestBidResponse);
+  rpc GetLowestAsk(GetLowestAskRequest) returns (GetLowestAskResponse);
+  rpc GetMarketPrice(GetMarketPriceRequest) returns (GetMarketPriceResponse);
+  
+  // Matches
+  rpc GetMatch(GetMatchRequest) returns (GetMatchResponse);
+  rpc GetUserMatches(GetUserMatchesRequest) returns (GetUserMatchesResponse);
+}
+
+// Messages
+
+message Bid {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 product_id = 3;
+  int64 size_id = 4;
+  double price = 5;
+  int32 quantity = 6;
+  string status = 7; // active, matched, cancelled, expired
+  string expires_at = 8;
+  string matched_at = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message Ask {
+  int64 id = 1;
+  int64 user_id = 2;
+  int64 product_id = 3;
+  int64 size_id = 4;
+  double price = 5;
+  int32 quantity = 6;
+  string status = 7; // active, matched, cancelled, expired
+  string expires_at = 8;
+  string matched_at = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message Match {
+  int64 id = 1;
+  int64 bid_id = 2;
+  int64 ask_id = 3;
+  int64 buyer_id = 4;
+  int64 seller_id = 5;
+  int64 product_id = 6;
+  int64 size_id = 7;
+  double price = 8;
+  int32 quantity = 9;
+  string status = 10; // pending, completed, failed
+  string completed_at = 11;
+  string created_at = 12;
+}
+
+// PlaceBid
+message PlaceBidRequest {
+  int64 user_id = 1;
+  int64 product_id = 2;
+  int64 size_id = 3;
+  double price = 4;
+  int32 quantity = 5;
+  int32 expires_in_hours = 6; // 0 = no expiration
+}
+
+message PlaceBidResponse {
+  Bid bid = 1;
+  Match match = 2; // If bid was instantly matched
+  string error = 3;
+}
+
+// GetBid
+message GetBidRequest {
+  int64 bid_id = 1;
+}
+
+message GetBidResponse {
+  Bid bid = 1;
+  string error = 2;
+}
+
+// GetUserBids
+message GetUserBidsRequest {
+  int64 user_id = 1;
+  string status = 2; // Optional filter: active, matched, cancelled, expired
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetUserBidsResponse {
+  repeated Bid bids = 1;
+  int64 total = 2;
+  string error = 3;
+}
+
+// GetProductBids
+message GetProductBidsRequest {
+  int64 product_id = 1;
+  int64 size_id = 2;
+  string status = 3; // Optional filter
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message GetProductBidsResponse {
+  repeated Bid bids = 1;
+  int64 total = 2;
+  string error = 3;
+}
+
+// CancelBid
+message CancelBidRequest {
+  int64 bid_id = 1;
+  int64 user_id = 2;
+}
+
+message CancelBidResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// PlaceAsk
+message PlaceAskRequest {
+  int64 user_id = 1;
+  int64 product_id = 2;
+  int64 size_id = 3;
+  double price = 4;
+  int32 quantity = 5;
+  int32 expires_in_hours = 6; // 0 = no expiration
+}
+
+message PlaceAskResponse {
+  Ask ask = 1;
+  Match match = 2; // If ask was instantly matched
+  string error = 3;
+}
+
+// GetAsk
+message GetAskRequest {
+  int64 ask_id = 1;
+}
+
+message GetAskResponse {
+  Ask ask = 1;
+  string error = 2;
+}
+
+// GetUserAsks
+message GetUserAsksRequest {
+  int64 user_id = 1;
+  string status = 2; // Optional filter
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetUserAsksResponse {
+  repeated Ask asks = 1;
+  int64 total = 2;
+  string error = 3;
+}
+
+// GetProductAsks
+message GetProductAsksRequest {
+  int64 product_id = 1;
+  int64 size_id = 2;
+  string status = 3; // Optional filter
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message GetProductAsksResponse {
+  repeated Ask asks = 1;
+  int64 total = 2;
+  string error = 3;
+}
+
+// CancelAsk
+message CancelAskRequest {
+  int64 ask_id = 1;
+  int64 user_id = 2;
+}
+
+message CancelAskResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// GetHighestBid
+message GetHighestBidRequest {
+  int64 product_id = 1;
+  int64 size_id = 2;
+}
+
+message GetHighestBidResponse {
+  Bid bid = 1;
+  string error = 2;
+}
+
+// GetLowestAsk
+message GetLowestAskRequest {
+  int64 product_id = 1;
+  int64 size_id = 2;
+}
+
+message GetLowestAskResponse {
+  Ask ask = 1;
+  string error = 2;
+}
+
+// GetMarketPrice
+message GetMarketPriceRequest {
+  int64 product_id = 1;
+  int64 size_id = 2;
+}
+
+message GetMarketPriceResponse {
+  double highest_bid = 1;
+  double lowest_ask = 2;
+  double last_sale = 3; // Last matched price
+  int64 total_bids = 4;
+  int64 total_asks = 5;
+  string error = 6;
+}
+
+// GetMatch
+message GetMatchRequest {
+  int64 match_id = 1;
+}
+
+message GetMatchResponse {
+  Match match = 1;
+  string error = 2;
+}
+
+// GetUserMatches
+message GetUserMatchesRequest {
+  int64 user_id = 1;
+  bool as_buyer = 2;
+  bool as_seller = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message GetUserMatchesResponse {
+  repeated Match matches = 1;
+  int64 total = 2;
+  string error = 3;
+}
