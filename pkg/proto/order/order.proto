@@ -1,0 +1,239 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/order";
+
+import "google/protobuf/timestamp.proto";
+
+// Order Service
+service OrderService {
+    // Order management
+    rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+    rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+    rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+    rpc UpdateOrderStatus(UpdateOrderStatusRequest) returns (UpdateOrderStatusResponse);
+    rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+    
+    // Shipping
+    rpc AddTrackingNumber(AddTrackingNumberRequest) returns (AddTrackingNumberResponse);
+    rpc GetShippingStatus(GetShippingStatusRequest) returns (GetShippingStatusResponse);
+    
+    // Buyer/Seller views
+    rpc GetBuyerOrders(GetBuyerOrdersRequest) returns (GetBuyerOrdersResponse);
+    rpc GetSellerOrders(GetSellerOrdersRequest) returns (GetSellerOrdersResponse);
+    
+    // Status history
+    rpc GetOrderStatusHistory(GetOrderStatusHistoryRequest) returns (GetOrderStatusHistoryResponse);
+}
+
+// Order message
+message Order {
+    int64 id = 1;
+    string order_number = 2;
+    int64 match_id = 3;
+    
+    // Parties
+    int64 buyer_id = 4;
+    int64 seller_id = 5;
+    
+    // Product details
+    int64 product_id = 6;
+    int64 size_id = 7;
+    
+    // Pricing
+    double price = 8;
+    int32 quantity = 9;
+    double buyer_fee = 10;
+    double seller_fee = 11;
+    double platform_fee = 12;
+    double total_amount = 13;
+    double seller_payout = 14;
+    
+    // Status
+    string status = 15;
+    
+    // Shipping
+    int64 shipping_address_id = 16;
+    string tracking_number = 17;
+    string carrier = 18;
+    
+    // Timestamps
+    google.protobuf.Timestamp payment_at = 19;
+    google.protobuf.Timestamp shipped_at = 20;
+    google.protobuf.Timestamp delivered_at = 21;
+    google.protobuf.Timestamp completed_at = 22;
+    google.protobuf.Timestamp cancelled_at = 23;
+    
+    // Notes
+    string buyer_notes = 24;
+    string seller_notes = 25;
+    string admin_notes = 26;
+    string cancellation_reason = 27;
+    
+    google.protobuf.Timestamp created_at = 28;
+    google.protobuf.Timestamp updated_at = 29;
+}
+
+// Order status history entry
+message OrderStatusHistory {
+    int64 id = 1;
+    int64 order_id = 2;
+    string from_status = 3;
+    string to_status = 4;
+    string note = 5;
+    string created_by = 6;
+    google.protobuf.Timestamp created_at = 7;
+}
+
+// Address message (simplified, could reference user.proto)
+message Address {
+    int64 id = 1;
+    string street_line1 = 2;
+    string street_line2 = 3;
+    string city = 4;
+    string state = 5;
+    string postal_code = 6;
+    string country = 7;
+}
+
+// ========== Create Order ==========
+
+message CreateOrderRequest {
+    int64 match_id = 1;
+    int64 shipping_address_id = 2;
+    string buyer_notes = 3;
+    
+    // Fee percentages (optional, defaults from config)
+    double buyer_fee_percentage = 4;   // e.g., 0.03 for 3%
+    double seller_fee_percentage = 5;  // e.g., 0.09 for 9%
+}
+
+message CreateOrderResponse {
+    Order order = 1;
+    string error = 2;
+}
+
+// ========== Get Order ==========
+
+message GetOrderRequest {
+    int64 order_id = 1;
+}
+
+message GetOrderResponse {
+    Order order = 1;
+    string error = 2;
+}
+
+// ========== List Orders ==========
+
+message ListOrdersRequest {
+    string status = 1;  // Optional filter
+    int32 page = 2;
+    int32 page_size = 3;
+}
+
+message ListOrdersResponse {
+    repeated Order orders = 1;
+    int64 total = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+    string error = 5;
+}
+
+// ========== Update Order Status ==========
+
+message UpdateOrderStatusRequest {
+    int64 order_id = 1;
+    string new_status = 2;
+    string note = 3;
+    string updated_by = 4;  // system, buyer, seller, admin
+}
+
+message UpdateOrderStatusResponse {
+    Order order = 1;
+    string error = 2;
+}
+
+// ========== Cancel Order ==========
+
+message CancelOrderRequest {
+    int64 order_id = 1;
+    string reason = 2;
+    int64 cancelled_by_user_id = 3;
+}
+
+message CancelOrderResponse {
+    Order order = 1;
+    string error = 2;
+}
+
+// ========== Add Tracking Number ==========
+
+message AddTrackingNumberRequest {
+    int64 order_id = 1;
+    string tracking_number = 2;
+    string carrier = 3;  // UPS, FedEx, USPS, DHL
+    int64 seller_id = 4;
+}
+
+message AddTrackingNumberResponse {
+    Order order = 1;
+    string error = 2;
+}
+
+// ========== Get Shipping Status ==========
+
+message GetShippingStatusRequest {
+    int64 order_id = 1;
+}
+
+message GetShippingStatusResponse {
+    string status = 1;
+    string tracking_number = 2;
+    string carrier = 3;
+    google.protobuf.Timestamp shipped_at = 4;
+    google.protobuf.Timestamp delivered_at = 5;
+    string error = 6;
+}
+
+// ========== Get Buyer Orders ==========
+
+message GetBuyerOrdersRequest {
+    int64 buyer_id = 1;
+    string status = 2;  // Optional filter
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message GetBuyerOrdersResponse {
+    repeated Order orders = 1;
+    int64 total = 2;
+    string error = 3;
+}
+
+// ========== Get Seller Orders ==========
+
+message GetSellerOrdersRequest {
+    int64 seller_id = 1;
+    string status = 2;  // Optional filter
+    int32 page = 3;
+    int32 page_size = 4;
+}
+
+message GetSellerOrdersResponse {
+    repeated Order orders = 1;
+    int64 total = 2;
+    string error = 3;
+}
+
+// ========== Get Order Status History ==========
+
+message GetOrderStatusHistoryRequest {
+    int64 order_id = 1;
+}
+
+message GetOrderStatusHistoryResponse {
+    repeated OrderStatusHistory history = 1;
+    string error = 2;
+}
