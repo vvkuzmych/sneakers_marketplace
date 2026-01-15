@@ -104,26 +104,57 @@ psql postgres://postgres:postgres@localhost:5432/sneakers_marketplace
 
 ---
 
+#### 4. User Service (COMPLETED! ✅)
+- ✅ **gRPC Proto** (`pkg/proto/user/user.proto`)
+  - Register, Login, RefreshToken, Logout
+  - GetProfile, UpdateProfile
+  - Address management (CRUD)
+  
+- ✅ **JWT Authentication** (`pkg/auth/`)
+  - JWT token generation & validation
+  - Password hashing with bcrypt
+  - Access & Refresh tokens
+  
+- ✅ **User Models** (`internal/user/model/`)
+  - User, Address, Session structs
+  
+- ✅ **User Repository** (`internal/user/repository/`)
+  - Full CRUD for users, addresses, sessions
+  - Session management for JWT
+  
+- ✅ **User Service** (`internal/user/service/`)
+  - Registration with validation
+  - Login with password verification
+  - Token refresh logic
+  - Profile management
+  
+- ✅ **gRPC Handlers** (`internal/user/handler/`)
+  - All endpoints implemented
+  - Error handling
+  
+- ✅ **Main Service** (`cmd/user-service/main.go`)
+  - gRPC server on port 50051
+  - Graceful shutdown
+  - Logging interceptor
+
+**✅ TESTED & WORKING:**
+```bash
+./scripts/test_user_service.sh
+# Returns: access_token, refresh_token, user profile
+```
+
+---
+
 ## 📝 Next Steps (Week 1 continued)
 
-### User Service (Next!)
-- [ ] Create gRPC proto definitions for User Service
-- [ ] Implement User models (`internal/user/model/`)
-- [ ] Implement User repository (`internal/user/repository/`)
-- [ ] Implement User service layer (`internal/user/service/`)
-- [ ] Implement gRPC server (`internal/user/handler/`)
-- [ ] Add JWT generation & validation
-- [ ] Add password hashing (bcrypt)
-- [ ] Create main.go for User Service (`cmd/user-service/`)
+### Product Service (Next!)
+- [ ] Create gRPC proto definitions for Product Service
+- [ ] Implement Product models
+- [ ] Implement Product repository
+- [ ] Implement Product service layer
+- [ ] Implement gRPC server
+- [ ] Create main.go for Product Service
 - [ ] Write unit tests
-
-**Features to implement:**
-- Register (POST /register)
-- Login (POST /login)
-- Get Profile (GET /profile)
-- Update Profile (PUT /profile)
-- Add Address (POST /addresses)
-- Get Addresses (GET /addresses)
 
 ---
 
@@ -162,8 +193,8 @@ sneakers_marketplace/
 
 - [x] Infrastructure packages (config, logger, database) ✅
 - [x] Database migrations (users, products) ✅
-- [ ] User Service (basic auth) 🔄 **NEXT**
-- [ ] Product Service (catalog) 
+- [x] **User Service (auth, JWT, gRPC)** ✅ 🎉
+- [ ] Product Service (catalog) 🔄 **NEXT**
 - [ ] Integration tests
 
 ---
@@ -210,8 +241,8 @@ func main() {
 | Logger Package | ✅ | Zerolog setup |
 | Database Package | ✅ | PostgreSQL + Redis |
 | Migrations | ✅ | Users + Products tables |
-| User Service | 🔄 | **Next: gRPC proto** |
-| Product Service | ⏳ | Pending |
+| **User Service** | ✅ | **Auth, JWT, gRPC - WORKING!** 🎉 |
+| Product Service | 🔄 | **Next!** |
 | Bidding Service | ⏳ | Pending |
 | Tests | ⏳ | Pending |
 
@@ -238,4 +269,24 @@ make migrate-up
 
 **Last Updated:** 2026-01-15
 **Current Phase:** Phase 1 - Week 1 (Foundation)
-**Next Milestone:** User Service gRPC implementation
+**Next Milestone:** Product Service implementation
+
+## 🎉 Recent Achievement
+
+**User Service is LIVE and TESTED!** 🚀
+
+Test it yourself:
+```bash
+cd /Users/vkuzm/GolandProjects/sneakers_marketplace
+./scripts/test_user_service.sh
+```
+
+Or manually:
+```bash
+grpcurl -plaintext -d '{
+  "email": "alice@example.com",
+  "password": "SecurePass123!",
+  "first_name": "Alice",
+  "last_name": "Smith"
+}' localhost:50051 user.UserService/Register
+```
