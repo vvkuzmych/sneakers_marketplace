@@ -1,0 +1,248 @@
+syntax = "proto3";
+
+package notification;
+
+option go_package = "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/notification";
+
+import "google/protobuf/timestamp.proto";
+
+// Notification Service
+service NotificationService {
+  // Send generic notification
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+  
+  // Get user notifications
+  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse);
+  
+  // Get unread count
+  rpc GetUnreadCount(GetUnreadCountRequest) returns (GetUnreadCountResponse);
+  
+  // Mark as read
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse);
+  
+  // Mark all as read
+  rpc MarkAllAsRead(MarkAllAsReadRequest) returns (MarkAllAsReadResponse);
+  
+  // Delete notification
+  rpc DeleteNotification(DeleteNotificationRequest) returns (DeleteNotificationResponse);
+  
+  // Get preferences
+  rpc GetPreferences(GetPreferencesRequest) returns (GetPreferencesResponse);
+  
+  // Update preferences
+  rpc UpdatePreferences(UpdatePreferencesRequest) returns (UpdatePreferencesResponse);
+  
+  // Event-specific notifications (called by other services)
+  rpc NotifyMatchCreated(NotifyMatchCreatedRequest) returns (NotifyMatchCreatedResponse);
+  rpc NotifyOrderUpdate(NotifyOrderUpdateRequest) returns (NotifyOrderUpdateResponse);
+  rpc NotifyPaymentEvent(NotifyPaymentEventRequest) returns (NotifyPaymentEventResponse);
+}
+
+// ========== Messages ==========
+
+message Notification {
+  int64 id = 1;
+  int64 user_id = 2;
+  string type = 3;  // 'match_created', 'order_shipped', etc.
+  string title = 4;
+  string message = 5;
+  string data = 6;  // JSON string
+  
+  bool email_sent = 7;
+  google.protobuf.Timestamp email_sent_at = 8;
+  bool push_sent = 9;
+  google.protobuf.Timestamp push_sent_at = 10;
+  
+  bool is_read = 11;
+  google.protobuf.Timestamp read_at = 12;
+  
+  google.protobuf.Timestamp created_at = 13;
+}
+
+message NotificationPreferences {
+  int64 user_id = 1;
+  
+  // Email preferences
+  bool email_enabled = 2;
+  bool email_match_created = 3;
+  bool email_order_created = 4;
+  bool email_order_shipped = 5;
+  bool email_payment_received = 6;
+  bool email_payout_completed = 7;
+  
+  // Push preferences
+  bool push_enabled = 8;
+  bool push_match_created = 9;
+  bool push_order_updates = 10;
+  bool push_payment_updates = 11;
+  
+  // In-app preferences
+  bool inapp_enabled = 12;
+  
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+}
+
+// ========== Send Notification ==========
+
+message SendNotificationRequest {
+  int64 user_id = 1;
+  string type = 2;
+  string title = 3;
+  string message = 4;
+  string data = 5;  // JSON string with context
+  bool send_email = 6;
+  bool send_push = 7;
+}
+
+message SendNotificationResponse {
+  Notification notification = 1;
+  string error = 2;
+}
+
+// ========== Get Notifications ==========
+
+message GetNotificationsRequest {
+  int64 user_id = 1;
+  bool unread_only = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message GetNotificationsResponse {
+  repeated Notification notifications = 1;
+  int64 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+  string error = 5;
+}
+
+// ========== Get Unread Count ==========
+
+message GetUnreadCountRequest {
+  int64 user_id = 1;
+}
+
+message GetUnreadCountResponse {
+  int64 count = 1;
+  string error = 2;
+}
+
+// ========== Mark As Read ==========
+
+message MarkAsReadRequest {
+  int64 notification_id = 1;
+  int64 user_id = 2;  // For authorization
+}
+
+message MarkAsReadResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// ========== Mark All As Read ==========
+
+message MarkAllAsReadRequest {
+  int64 user_id = 1;
+}
+
+message MarkAllAsReadResponse {
+  int64 updated_count = 1;
+  string error = 2;
+}
+
+// ========== Delete Notification ==========
+
+message DeleteNotificationRequest {
+  int64 notification_id = 1;
+  int64 user_id = 2;  // For authorization
+}
+
+message DeleteNotificationResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// ========== Preferences ==========
+
+message GetPreferencesRequest {
+  int64 user_id = 1;
+}
+
+message GetPreferencesResponse {
+  NotificationPreferences preferences = 1;
+  string error = 2;
+}
+
+message UpdatePreferencesRequest {
+  int64 user_id = 1;
+  
+  // Email preferences (optional, only update if set)
+  optional bool email_enabled = 2;
+  optional bool email_match_created = 3;
+  optional bool email_order_created = 4;
+  optional bool email_order_shipped = 5;
+  optional bool email_payment_received = 6;
+  optional bool email_payout_completed = 7;
+  
+  // Push preferences
+  optional bool push_enabled = 8;
+  optional bool push_match_created = 9;
+  optional bool push_order_updates = 10;
+  optional bool push_payment_updates = 11;
+  
+  // In-app
+  optional bool inapp_enabled = 12;
+}
+
+message UpdatePreferencesResponse {
+  NotificationPreferences preferences = 1;
+  string error = 2;
+}
+
+// ========== Event-Specific Notifications ==========
+
+message NotifyMatchCreatedRequest {
+  int64 match_id = 1;
+  int64 buyer_id = 2;
+  int64 seller_id = 3;
+  int64 product_id = 4;
+  string product_name = 5;
+  string size = 6;
+  double price = 7;
+}
+
+message NotifyMatchCreatedResponse {
+  bool buyer_notified = 1;
+  bool seller_notified = 2;
+  string error = 3;
+}
+
+message NotifyOrderUpdateRequest {
+  int64 order_id = 1;
+  string order_number = 2;
+  int64 buyer_id = 3;
+  int64 seller_id = 4;
+  string old_status = 5;
+  string new_status = 6;
+  string tracking_number = 7;  // Optional, for shipped status
+}
+
+message NotifyOrderUpdateResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message NotifyPaymentEventRequest {
+  int64 payment_id = 1;
+  int64 user_id = 2;
+  string event_type = 3;  // 'payment_succeeded', 'payment_failed', 'refund_issued', 'payout_completed'
+  double amount = 4;
+  string currency = 5;
+  int64 order_id = 6;
+}
+
+message NotifyPaymentEventResponse {
+  bool success = 1;
+  string error = 2;
+}
