@@ -18,6 +18,7 @@ type JWTManager struct {
 type Claims struct {
 	UserID int64  `json:"user_id"`
 	Email  string `json:"email"`
+	Role   string `json:"role"` // user, admin
 	jwt.RegisteredClaims
 }
 
@@ -30,11 +31,17 @@ func NewJWTManager(secretKey string, accessDuration, refreshDuration time.Durati
 	}
 }
 
-// GenerateAccessToken generates a new access token
+// GenerateAccessToken generates a new access token (defaults to "user" role)
 func (m *JWTManager) GenerateAccessToken(userID int64, email string) (string, error) {
+	return m.GenerateAccessTokenWithRole(userID, email, "user")
+}
+
+// GenerateAccessTokenWithRole generates a new access token with specified role
+func (m *JWTManager) GenerateAccessTokenWithRole(userID int64, email, role string) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Email:  email,
+		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.accessTokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -46,11 +53,17 @@ func (m *JWTManager) GenerateAccessToken(userID int64, email string) (string, er
 	return token.SignedString(m.secretKey)
 }
 
-// GenerateRefreshToken generates a new refresh token
+// GenerateRefreshToken generates a new refresh token (defaults to "user" role)
 func (m *JWTManager) GenerateRefreshToken(userID int64, email string) (string, error) {
+	return m.GenerateRefreshTokenWithRole(userID, email, "user")
+}
+
+// GenerateRefreshTokenWithRole generates a new refresh token with specified role
+func (m *JWTManager) GenerateRefreshTokenWithRole(userID int64, email, role string) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		Email:  email,
+		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(m.refreshTokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
