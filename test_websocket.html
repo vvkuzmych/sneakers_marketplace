@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test - Sneakers Marketplace</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        #messages {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            background: #f5f5f5;
+        }
+        .message {
+            padding: 5px;
+            margin: 5px 0;
+            border-left: 3px solid #007bff;
+            background: white;
+        }
+        .notification {
+            border-left-color: #28a745;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        input {
+            padding: 10px;
+            width: 300px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔔 WebSocket Notifications Test</h1>
+        
+        <div id="status" class="status disconnected">
+            Disconnected
+        </div>
+        
+        <div>
+            <input type="text" id="token" placeholder="Paste your JWT token here" />
+            <button onclick="connect()">Connect</button>
+            <button onclick="disconnect()">Disconnect</button>
+            <button onclick="sendPing()">Send Ping</button>
+            <button onclick="clearMessages()">Clear</button>
+        </div>
+        
+        <h3>Messages:</h3>
+        <div id="messages"></div>
+        
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Get JWT token: <code>curl -X POST http://localhost:8080/api/v1/auth/login -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password123"}'</code></li>
+            <li>Copy the <code>access_token</code> from response</li>
+            <li>Paste it in the input field above</li>
+            <li>Click "Connect"</li>
+            <li>Test notifications via: <code>grpcurl -plaintext -d '{"user_id": 1, "type": "test", "title": "Test", "message": "Hello WebSocket!", "send_push": true}' localhost:50056 notification.NotificationService/SendNotification</code></li>
+        </ol>
+    </div>
+
+    <script>
+        let ws = null;
+
+        function connect() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                alert('Please enter JWT token');
+                return;
+            }
+
+            // Connect to WebSocket with token
+            ws = new WebSocket('ws://localhost:8080/ws?token=' + token);
+
+            ws.onopen = function() {
+                updateStatus('Connected', true);
+                addMessage('System', 'Connected to WebSocket server');
+            };
+
+            ws.onclose = function() {
+                updateStatus('Disconnected', false);
+                addMessage('System', 'Disconnected from server');
+            };
+
+            ws.onerror = function(error) {
+                addMessage('Error', 'WebSocket error: ' + error);
+            };
+
+            ws.onmessage = function(event) {
+                console.log('Received:', event.data);
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'notification') {
+                        addNotification(msg.data);
+                    } else if (msg.type === 'connected') {
+                        addMessage('System', 'Welcome! User ID: ' + msg.data.user_id);
+                    } else if (msg.type === 'pong') {
+                        addMessage('System', 'Pong received');
+                    } else {
+                        addMessage(msg.type, JSON.stringify(msg.data, null, 2));
+                    }
+                } catch (e) {
+                    addMessage('Raw', event.data);
+                }
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendPing() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: 'ping'}));
+                addMessage('Sent', 'Ping');
+            } else {
+                alert('Not connected');
+            }
+        }
+
+        function updateStatus(text, connected) {
+            const status = document.getElementById('status');
+            status.textContent = text;
+            status.className = 'status ' + (connected ? 'connected' : 'disconnected');
+        }
+
+        function addMessage(type, content) {
+            const messages = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = 'message';
+            msg.innerHTML = `<strong>${type}:</strong> ${content}`;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addNotification(data) {
+            const messages = document.getElementById('messages');
+            const msg = document.createElement('div');
+            msg.className = 'message notification';
+            msg.innerHTML = `
+                <strong>🔔 Notification:</strong><br>
+                <strong>${data.title || 'Notification'}</strong><br>
+                ${data.message}<br>
+                <small>${new Date().toLocaleTimeString()}</small>
+            `;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+
+            // Browser notification (if permission granted)
+            if (Notification.permission === 'granted') {
+                new Notification(data.title || 'Notification', {
+                    body: data.message,
+                    icon: '🔔'
+                });
+            }
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Request browser notification permission
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+    </script>
+</body>
+</html>

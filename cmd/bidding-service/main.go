@@ -67,13 +67,12 @@ func main() {
 	reflection.Register(grpcServer)
 
 	// Get port from environment (Bidding Service uses 50053)
-	port := 50053
-	if cfg.Services.BiddingService != "" {
-		// Parse port from address (localhost:50053)
-		fmt.Sscanf(cfg.Services.BiddingService, "localhost:%d", &port)
+	// Use BIDDING_SERVICE_PORT env var, or default to 50053
+	port := os.Getenv("BIDDING_SERVICE_PORT")
+	if port == "" {
+		port = "50053"
 	}
-
-	address := fmt.Sprintf(":%d", port)
+	address := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalf("Failed to listen on %s: %v", address, err)

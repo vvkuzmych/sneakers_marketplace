@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/vvkuzmych/sneakers_marketplace/internal/notification/email"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/notification/handler"
@@ -57,6 +58,9 @@ func main() {
 	// Create gRPC server
 	grpcServer := grpc.NewServer()
 	pb.RegisterNotificationServiceServer(grpcServer, notifHandler)
+
+	// Enable gRPC reflection for debugging
+	reflection.Register(grpcServer)
 
 	// Start server
 	lis, err := net.Listen("tcp", ":"+port)

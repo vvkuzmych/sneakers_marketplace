@@ -76,7 +76,12 @@ func main() {
 	reflection.Register(grpcServer)
 
 	// Start gRPC server
-	address := fmt.Sprintf(":%d", cfg.Server.Port)
+	// Use USER_SERVICE_PORT env var, or default to 50051
+	port := os.Getenv("USER_SERVICE_PORT")
+	if port == "" {
+		port = "50051"
+	}
+	address := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalf("Failed to listen on %s: %v", address, err)

@@ -61,9 +61,8 @@ build: ## Build all services
 	$(GO) build -o bin/order-service cmd/order-service/main.go
 	$(GO) build -o bin/payment-service cmd/payment-service/main.go
 	$(GO) build -o bin/notification-service cmd/notification-service/main.go
-	$(GO) build -o bin/search-service cmd/search-service/main.go
-	$(GO) build -o bin/analytics-service cmd/analytics-service/main.go
-	$(GO) build -o bin/auth-service cmd/auth-service/main.go
+	$(GO) build -o bin/api-gateway cmd/api-gateway/main.go
+	@echo "$(GREEN)✅ All services built successfully!$(NC)"
 
 build-user: ## Build User Service
 	$(GO) build -o bin/user-service cmd/user-service/main.go

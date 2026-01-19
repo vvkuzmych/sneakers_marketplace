@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test - Sneakers Marketplace</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        #status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        .connected {
+            background: rgba(46, 213, 115, 0.3);
+            border: 2px solid #2ed573;
+        }
+        .disconnected {
+            background: rgba(255, 71, 87, 0.3);
+            border: 2px solid #ff4757;
+        }
+        .connecting {
+            background: rgba(255, 168, 1, 0.3);
+            border: 2px solid #ffa801;
+        }
+        #messages {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .message.notification {
+            border-left-color: #2ed573;
+        }
+        .message.error {
+            border-left-color: #ff4757;
+            background: rgba(255, 71, 87, 0.2);
+        }
+        .timestamp {
+            color: #ffa801;
+            font-size: 0.85em;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        .info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #ffa801;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 WebSocket Live Test</h1>
+        
+        <div id="status" class="disconnected">
+            ❌ Disconnected
+        </div>
+
+        <div id="messages"></div>
+
+        <div class="controls">
+            <div style="margin-bottom: 15px;">
+                <input type="text" id="tokenInput" placeholder="JWT Token (optional - will auto-login if empty)" 
+                       style="width: 80%; padding: 10px; border-radius: 5px; border: 2px solid rgba(255,255,255,0.3); 
+                              background: rgba(0,0,0,0.3); color: white; font-family: monospace;">
+            </div>
+            <button id="connectBtn" onclick="connect()">Connect to WebSocket</button>
+            <button id="disconnectBtn" onclick="disconnect()" disabled>Disconnect</button>
+            <button onclick="clearMessages()">Clear Messages</button>
+            <button onclick="autoLogin()">Auto Login & Connect</button>
+        </div>
+
+        <div class="info">
+            <strong>📡 Connection Info:</strong><br>
+            WebSocket URL: <code>ws://localhost:8080/ws?token=YOUR_JWT</code><br>
+            Test User: <code>websocket-test@example.com</code><br>
+            <br>
+            <strong>🔐 How to use:</strong><br>
+            1. Click <strong>"Auto Login & Connect"</strong> - automatically gets JWT token<br>
+            2. Or manually paste your JWT token in the input field<br>
+            3. Watch real-time notifications appear!
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        const API_URL = "http://localhost:8080";
+        const TEST_USER = {
+            email: "websocket-test@example.com",
+            password: "password123"
+        };
+
+        function addMessage(text, type = 'message') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            messageDiv.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span><br>
+                ${text}
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function updateStatus(status, className) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = status;
+            statusDiv.className = className;
+        }
+
+        async function autoLogin() {
+            addMessage('🔄 Attempting auto-login...', 'message');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(TEST_USER)
+                });
+
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    document.getElementById('tokenInput').value = data.access_token;
+                    addMessage('✅ Auto-login successful! Token received.', 'notification');
+                    addMessage(`User: ${data.user.email} (ID: ${data.user.id})`, 'message');
+                    
+                    // Auto-connect
+                    setTimeout(() => connect(), 500);
+                } else {
+                    addMessage(`❌ Login failed: ${data.error || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                addMessage(`❌ Login error: ${error.message}`, 'error');
+            }
+        }
+
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addMessage('Already connected!', 'error');
+                return;
+            }
+
+            // Get token from input or use default
+            const token = document.getElementById('tokenInput').value.trim();
+            
+            if (!token) {
+                addMessage('❌ No token provided! Click "Auto Login & Connect" first.', 'error');
+                return;
+            }
+
+            updateStatus('🔄 Connecting...', 'connecting');
+            addMessage('Connecting to WebSocket server...', 'message');
+
+            const wsUrl = `ws://localhost:8080/ws?token=${token}`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function(event) {
+                updateStatus('✅ Connected', 'connected');
+                addMessage('✅ WebSocket connection established!', 'notification');
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('disconnectBtn').disabled = false;
+            };
+
+            ws.onmessage = function(event) {
+                addMessage(`📨 Received: ${event.data}`, 'notification');
+                
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'notification') {
+                        addMessage(`
+                            <strong>🔔 Notification</strong><br>
+                            <strong>Title:</strong> ${data.title}<br>
+                            <strong>Message:</strong> ${data.message}
+                        `, 'notification');
+                    }
+                } catch (e) {
+                    // Message is not JSON, already displayed above
+                }
+            };
+
+            ws.onerror = function(error) {
+                addMessage(`❌ WebSocket error: ${error.message || 'Unknown error'}`, 'error');
+                updateStatus('❌ Error', 'disconnected');
+            };
+
+            ws.onclose = function(event) {
+                addMessage(`❌ Connection closed (code: ${event.code}, reason: ${event.reason || 'No reason provided'})`, 'error');
+                updateStatus('❌ Disconnected', 'disconnected');
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('disconnectBtn').disabled = true;
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                addMessage('Disconnecting...', 'message');
+            }
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Auto-connect on page load
+        window.onload = function() {
+            addMessage('🎉 Page loaded! Click "Auto Login & Connect" to get started.', 'notification');
+            addMessage('💡 Or paste your JWT token in the input field and click "Connect to WebSocket".', 'message');
+        };
+    </script>
+</body>
+</html>

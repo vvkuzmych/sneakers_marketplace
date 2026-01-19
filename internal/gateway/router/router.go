@@ -7,10 +7,11 @@ import (
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/clients"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/handlers"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/middleware"
+	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/websocket"
 )
 
 // SetupRouter configures all routes
-func SetupRouter(grpcClients *clients.GRPCClients) *gin.Engine {
+func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub) *gin.Engine {
 	router := gin.Default()
 
 	// CORS middleware
@@ -22,10 +23,14 @@ func SetupRouter(grpcClients *clients.GRPCClients) *gin.Engine {
 	// Health check
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status":  "healthy",
-			"service": "api-gateway",
+			"status":         "healthy",
+			"service":        "api-gateway",
+			"ws_connections": wsHub.GetClientCount(),
 		})
 	})
+
+	// WebSocket endpoint (requires JWT authentication via query param or header)
+	router.GET("/ws", websocket.HandleWebSocket(wsHub))
 
 	// Initialize handlers
 	userHandler := handlers.NewUserHandler(grpcClients.UserClient)
