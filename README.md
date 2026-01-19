@@ -33,6 +33,37 @@
 - **Order Book** - View active bids and asks
 - **Match History** - Complete transaction history
 - **FIFO Algorithm** - Fair, time-priority matching
+- **Auto-Notifications** - Instant alerts on match creation
+
+### 📦 Order Service (Port 50054)
+- **Order Management** - Complete order lifecycle (11 states)
+- **Fee Calculation** - Buyer (5%) + Seller (4%) fees
+- **Order Numbers** - Auto-generated (ORD-YYYYMMDD-XXXX)
+- **Shipping Tracking** - Tracking number integration
+- **Status History** - Complete audit trail
+
+### 💳 Payment Service (Port 50055)
+- **Stripe Integration** - Real + Demo mode
+- **Payment Intents** - Secure payment processing
+- **Refunds** - Full and partial refunds
+- **Seller Payouts** - Stripe Connect integration
+- **Payment History** - Complete transaction tracking
+
+### 🔔 Notification Service (Port 50056) 🆕
+- **Email Notifications** - SMTP integration (Mailhog)
+- **Real-time Alerts** - WebSocket push notifications
+- **8 Notification Types** - Match, Order, Payment, Refund, etc.
+- **User Preferences** - Control email/push settings
+- **Read Tracking** - Mark as read/unread
+- **History** - Paginated notification list
+
+### 🌐 API Gateway (Port 8080) 🆕
+- **HTTP REST API** - User-friendly HTTP endpoints
+- **WebSocket Support** - Real-time bidirectional communication
+- **JWT Authentication** - Secure token-based auth
+- **gRPC Proxy** - Routes to all microservices
+- **CORS Support** - Cross-origin requests
+- **Health Checks** - Service status monitoring
 
 ---
 

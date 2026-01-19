@@ -67,14 +67,12 @@ func main() {
 	// Enable gRPC reflection for debugging
 	reflection.Register(grpcServer)
 
-	// Get port from environment (Product Service uses 50052)
-	port := 50052
-	if cfg.Services.ProductService != "" {
-		// Parse port from address (localhost:50052)
-		fmt.Sscanf(cfg.Services.ProductService, "localhost:%d", &port)
+	// Use PRODUCT_SERVICE_PORT env var, or default to 50052
+	port := os.Getenv("PRODUCT_SERVICE_PORT")
+	if port == "" {
+		port = "50052"
 	}
-
-	address := fmt.Sprintf(":%d", port)
+	address := fmt.Sprintf(":%s", port)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalf("Failed to listen on %s: %v", address, err)

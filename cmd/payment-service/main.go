@@ -60,14 +60,10 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// Override port for payment service
-	port := os.Getenv("PAYMENT_SERVICE_PORT")
-	if port != "" {
-		portInt := 50055
-		fmt.Sscanf(port, "%d", &portInt)
-		cfg.Server.Port = portInt
-	} else {
-		cfg.Server.Port = 50055 // Default port for Payment Service
+	// Use PAYMENT_SERVICE_PORT env var, or default to 50055
+	paymentPort := os.Getenv("PAYMENT_SERVICE_PORT")
+	if paymentPort == "" {
+		paymentPort = "50055"
 	}
 
 	// Initialize database
@@ -99,7 +95,7 @@ func main() {
 	reflection.Register(grpcServer)
 
 	// Start gRPC server
-	address := fmt.Sprintf(":%d", cfg.Server.Port)
+	address := fmt.Sprintf(":%s", paymentPort)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalf("Failed to listen on %s: %v", address, err)

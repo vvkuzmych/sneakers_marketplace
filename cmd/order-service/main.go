@@ -61,14 +61,10 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	// Override port for order service
-	port := os.Getenv("ORDER_SERVICE_PORT")
-	if port != "" {
-		portInt := 50054
-		fmt.Sscanf(port, "%d", &portInt)
-		cfg.Server.Port = portInt
-	} else {
-		cfg.Server.Port = 50054 // Default port for Order Service
+	// Use ORDER_SERVICE_PORT env var, or default to 50054
+	orderPort := os.Getenv("ORDER_SERVICE_PORT")
+	if orderPort == "" {
+		orderPort = "50054"
 	}
 
 	// Initialize database
@@ -100,7 +96,7 @@ func main() {
 	reflection.Register(grpcServer)
 
 	// Start gRPC server
-	address := fmt.Sprintf(":%d", cfg.Server.Port)
+	address := fmt.Sprintf(":%s", orderPort)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalf("Failed to listen on %s: %v", address, err)

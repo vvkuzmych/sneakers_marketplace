@@ -11,6 +11,7 @@ import (
 
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/clients"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/router"
+	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/websocket"
 )
 
 func main() {
@@ -31,8 +32,13 @@ func main() {
 		log.Fatalf("Failed to connect to gRPC services: %v", err)
 	}
 
+	// Create WebSocket hub
+	wsHub := websocket.NewHub()
+	go wsHub.Run()
+	log.Println("✅ WebSocket Hub started")
+
 	// Setup router
-	r := router.SetupRouter(grpcClients)
+	r := router.SetupRouter(grpcClients, wsHub)
 
 	// Get HTTP port
 	port := getEnv("HTTP_PORT", "8080")
