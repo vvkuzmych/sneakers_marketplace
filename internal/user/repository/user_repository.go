@@ -47,7 +47,7 @@ func (r *UserRepository) Create(ctx context.Context, user *model.User) error {
 func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, error) {
 	query := `
 		SELECT id, email, password_hash, first_name, last_name, phone, 
-		       is_verified, is_active, created_at, updated_at
+		       COALESCE(role, 'user') as role, is_verified, is_active, created_at, updated_at
 		FROM users
 		WHERE id = $1
 	`
@@ -60,6 +60,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, er
 		&user.FirstName,
 		&user.LastName,
 		&user.Phone,
+		&user.Role,
 		&user.IsVerified,
 		&user.IsActive,
 		&user.CreatedAt,
@@ -76,7 +77,8 @@ func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, er
 // GetByEmail retrieves a user by email
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
-		SELECT id, email, password_hash, first_name, last_name, phone, 
+		SELECT id, email, password_hash, first_name, last_name, phone,
+		       COALESCE(role, 'user') as role, 
 		       is_verified, is_active, created_at, updated_at
 		FROM users
 		WHERE email = $1
@@ -90,6 +92,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.U
 		&user.FirstName,
 		&user.LastName,
 		&user.Phone,
+		&user.Role,
 		&user.IsVerified,
 		&user.IsActive,
 		&user.CreatedAt,

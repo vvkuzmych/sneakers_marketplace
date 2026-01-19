@@ -55,13 +55,14 @@ func (s *UserService) Register(ctx context.Context, email, password, firstName, 
 		return nil, "", "", fmt.Errorf("failed to create user: %w", err)
 	}
 
-	// Generate tokens
-	accessToken, err := s.jwtManager.GenerateAccessToken(user.ID, user.Email)
+	// Generate tokens with role (default to "user" for new registrations)
+	role := "user"
+	accessToken, err := s.jwtManager.GenerateAccessTokenWithRole(user.ID, user.Email, role)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	refreshToken, err := s.jwtManager.GenerateRefreshToken(user.ID, user.Email)
+	refreshToken, err := s.jwtManager.GenerateRefreshTokenWithRole(user.ID, user.Email, role)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to generate refresh token: %w", err)
 	}
@@ -101,13 +102,17 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 		return nil, "", "", fmt.Errorf("user account is deactivated")
 	}
 
-	// Generate tokens
-	accessToken, err := s.jwtManager.GenerateAccessToken(user.ID, user.Email)
+	// Generate tokens with user's role
+	role := user.Role
+	if role == "" {
+		role = "user" // Default to user if not set
+	}
+	accessToken, err := s.jwtManager.GenerateAccessTokenWithRole(user.ID, user.Email, role)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	refreshToken, err := s.jwtManager.GenerateRefreshToken(user.ID, user.Email)
+	refreshToken, err := s.jwtManager.GenerateRefreshTokenWithRole(user.ID, user.Email, role)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("failed to generate refresh token: %w", err)
 	}
@@ -148,13 +153,17 @@ func (s *UserService) RefreshToken(ctx context.Context, refreshToken string) (st
 		return "", "", fmt.Errorf("user account is deactivated")
 	}
 
-	// Generate new tokens
-	newAccessToken, err := s.jwtManager.GenerateAccessToken(user.ID, user.Email)
+	// Generate new tokens with user's role
+	role := user.Role
+	if role == "" {
+		role = "user"
+	}
+	newAccessToken, err := s.jwtManager.GenerateAccessTokenWithRole(user.ID, user.Email, role)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate access token: %w", err)
 	}
 
-	newRefreshToken, err := s.jwtManager.GenerateRefreshToken(user.ID, user.Email)
+	newRefreshToken, err := s.jwtManager.GenerateRefreshTokenWithRole(user.ID, user.Email, role)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to generate refresh token: %w", err)
 	}

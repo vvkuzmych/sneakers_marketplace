@@ -12,6 +12,7 @@ type User struct {
 	FirstName    string    `json:"first_name"`
 	LastName     string    `json:"last_name"`
 	Phone        string    `json:"phone"`
+	Role         string    `json:"role"` // user, admin
 	IsVerified   bool      `json:"is_verified"`
 	IsActive     bool      `json:"is_active"`
 	CreatedAt    time.Time `json:"created_at"`
