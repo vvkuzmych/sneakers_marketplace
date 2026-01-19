@@ -39,6 +39,10 @@ run-notification-service: ## Run Notification Service
 	@echo "$(GREEN)Starting Notification Service...$(NC)"
 	cd cmd/notification-service && $(GO) run main.go
 
+run-admin-service: ## Run Admin Service
+	@echo "$(GREEN)Starting Admin Service...$(NC)"
+	cd cmd/admin-service && $(GO) run main.go
+
 run-search-service: ## Run Search Service
 	@echo "$(GREEN)Starting Search Service...$(NC)"
 	cd cmd/search-service && $(GO) run main.go
@@ -61,6 +65,7 @@ build: ## Build all services
 	$(GO) build -o bin/order-service cmd/order-service/main.go
 	$(GO) build -o bin/payment-service cmd/payment-service/main.go
 	$(GO) build -o bin/notification-service cmd/notification-service/main.go
+	$(GO) build -o bin/admin-service cmd/admin-service/main.go
 	$(GO) build -o bin/api-gateway cmd/api-gateway/main.go
 	@echo "$(GREEN)✅ All services built successfully!$(NC)"
 
@@ -72,6 +77,9 @@ build-product: ## Build Product Service
 
 build-bidding: ## Build Bidding Service
 	$(GO) build -o bin/bidding-service cmd/bidding-service/main.go
+
+build-admin: ## Build Admin Service
+	$(GO) build -o bin/admin-service cmd/admin-service/main.go
 
 ## Testing
 
