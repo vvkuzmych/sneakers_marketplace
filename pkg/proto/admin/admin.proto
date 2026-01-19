@@ -1,0 +1,380 @@
+syntax = "proto3";
+
+package admin;
+
+option go_package = "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/admin";
+
+import "google/protobuf/timestamp.proto";
+
+// AdminService provides administrative functions for platform management
+service AdminService {
+  // User Management
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc BanUser(BanUserRequest) returns (BanUserResponse);
+  rpc UnbanUser(UnbanUserRequest) returns (UnbanUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc UpdateUserRole(UpdateUserRoleRequest) returns (UpdateUserRoleResponse);
+  
+  // Order Management
+  rpc ListAllOrders(ListAllOrdersRequest) returns (ListAllOrdersResponse);
+  rpc GetOrderDetails(GetOrderDetailsRequest) returns (GetOrderDetailsResponse);
+  rpc CancelOrder(CancelOrderRequest) returns (CancelOrderResponse);
+  
+  // Product Management
+  rpc ListAllProducts(ListAllProductsRequest) returns (ListAllProductsResponse);
+  rpc FeatureProduct(FeatureProductRequest) returns (FeatureProductResponse);
+  rpc HideProduct(HideProductRequest) returns (HideProductResponse);
+  
+  // Analytics
+  rpc GetPlatformStats(GetPlatformStatsRequest) returns (GetPlatformStatsResponse);
+  rpc GetRevenueReport(GetRevenueReportRequest) returns (GetRevenueReportResponse);
+  rpc GetUserActivityReport(GetUserActivityReportRequest) returns (GetUserActivityReportResponse);
+  
+  // System Health
+  rpc GetSystemHealth(GetSystemHealthRequest) returns (GetSystemHealthResponse);
+  rpc GetServiceMetrics(GetServiceMetricsRequest) returns (GetServiceMetricsResponse);
+  
+  // Audit Logs
+  rpc GetAuditLogs(GetAuditLogsRequest) returns (GetAuditLogsResponse);
+}
+
+// ==================== User Management ====================
+
+message ListUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string status = 3; // all, active, banned
+  string role = 4; // all, admin, user
+  string search = 5; // email or name
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message User {
+  int64 id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string phone = 5;
+  string role = 6; // user, admin
+  bool is_active = 7;
+  bool is_banned = 8;
+  string ban_reason = 9;
+  google.protobuf.Timestamp banned_at = 10;
+  int32 total_orders = 11;
+  double total_spent = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp last_login = 14;
+}
+
+message GetUserRequest {
+  int64 user_id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+  UserStatistics statistics = 2;
+}
+
+message UserStatistics {
+  int32 total_bids = 1;
+  int32 total_asks = 2;
+  int32 total_matches = 3;
+  int32 total_orders = 4;
+  double total_spent = 5;
+  double total_earned = 6;
+}
+
+message BanUserRequest {
+  int64 user_id = 1;
+  int64 admin_id = 2;
+  string reason = 3;
+}
+
+message BanUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UnbanUserRequest {
+  int64 user_id = 1;
+  int64 admin_id = 2;
+}
+
+message UnbanUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DeleteUserRequest {
+  int64 user_id = 1;
+  int64 admin_id = 2;
+  string reason = 3;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UpdateUserRoleRequest {
+  int64 user_id = 1;
+  int64 admin_id = 2;
+  string new_role = 3; // user, admin
+}
+
+message UpdateUserRoleResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ==================== Order Management ====================
+
+message ListAllOrdersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string status = 3; // all, pending, paid, processing, shipped, delivered, cancelled, refunded
+  string sort_by = 4; // created_at, total_amount
+  string sort_order = 5; // asc, desc
+  google.protobuf.Timestamp date_from = 6;
+  google.protobuf.Timestamp date_to = 7;
+}
+
+message ListAllOrdersResponse {
+  repeated OrderSummary orders = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message OrderSummary {
+  int64 id = 1;
+  string order_number = 2;
+  int64 buyer_id = 3;
+  int64 seller_id = 4;
+  string buyer_email = 5;
+  string seller_email = 6;
+  int64 product_id = 7;
+  string product_name = 8;
+  double subtotal = 9;
+  double buyer_fee = 10;
+  double seller_fee = 11;
+  double total = 12;
+  string status = 13;
+  google.protobuf.Timestamp created_at = 14;
+}
+
+message GetOrderDetailsRequest {
+  int64 order_id = 1;
+}
+
+message GetOrderDetailsResponse {
+  OrderSummary order = 1;
+  repeated OrderStatusChange status_history = 2;
+}
+
+message OrderStatusChange {
+  string status = 1;
+  string changed_by = 2;
+  string notes = 3;
+  google.protobuf.Timestamp changed_at = 4;
+}
+
+message CancelOrderRequest {
+  int64 order_id = 1;
+  int64 admin_id = 2;
+  string reason = 3;
+}
+
+message CancelOrderResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ==================== Product Management ====================
+
+message ListAllProductsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string status = 3; // all, active, hidden, featured
+  string search = 4;
+}
+
+message ListAllProductsResponse {
+  repeated ProductSummary products = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message ProductSummary {
+  int64 id = 1;
+  string sku = 2;
+  string name = 3;
+  string brand = 4;
+  string model = 5;
+  double retail_price = 6;
+  bool is_active = 7;
+  bool is_featured = 8;
+  int32 total_bids = 9;
+  int32 total_asks = 10;
+  int32 total_matches = 11;
+  double highest_bid = 12;
+  double lowest_ask = 13;
+  google.protobuf.Timestamp created_at = 14;
+}
+
+message FeatureProductRequest {
+  int64 product_id = 1;
+  int64 admin_id = 2;
+}
+
+message FeatureProductResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message HideProductRequest {
+  int64 product_id = 1;
+  int64 admin_id = 2;
+  string reason = 3;
+}
+
+message HideProductResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ==================== Analytics ====================
+
+message GetPlatformStatsRequest {
+  // Empty - returns overall stats
+}
+
+message GetPlatformStatsResponse {
+  int32 total_users = 1;
+  int32 active_users_today = 2;
+  int32 total_products = 3;
+  int32 active_products = 4;
+  int32 total_orders = 5;
+  int32 orders_today = 6;
+  double total_revenue = 7;
+  double revenue_today = 8;
+  double total_fees_collected = 9;
+  int32 total_matches = 10;
+  int32 matches_today = 11;
+}
+
+message GetRevenueReportRequest {
+  google.protobuf.Timestamp date_from = 1;
+  google.protobuf.Timestamp date_to = 2;
+  string group_by = 3; // day, week, month
+}
+
+message GetRevenueReportResponse {
+  repeated RevenueDataPoint data_points = 1;
+  double total_revenue = 2;
+  double total_fees = 3;
+}
+
+message RevenueDataPoint {
+  string label = 1; // date or period
+  double revenue = 2;
+  double fees = 3;
+  int32 order_count = 4;
+}
+
+message GetUserActivityReportRequest {
+  google.protobuf.Timestamp date_from = 1;
+  google.protobuf.Timestamp date_to = 2;
+}
+
+message GetUserActivityReportResponse {
+  int32 new_users = 1;
+  int32 active_users = 2;
+  int32 total_bids_placed = 3;
+  int32 total_asks_placed = 4;
+  int32 total_matches_created = 5;
+}
+
+// ==================== System Health ====================
+
+message GetSystemHealthRequest {
+  // Empty - returns health of all services
+}
+
+message GetSystemHealthResponse {
+  bool overall_healthy = 1;
+  repeated ServiceHealth services = 2;
+  DatabaseHealth database = 3;
+  google.protobuf.Timestamp checked_at = 4;
+}
+
+message ServiceHealth {
+  string service_name = 1; // user-service, product-service, etc.
+  string status = 2; // healthy, degraded, down
+  string address = 3;
+  int64 uptime_seconds = 4;
+  string version = 5;
+}
+
+message DatabaseHealth {
+  bool healthy = 1;
+  int32 active_connections = 2;
+  int32 idle_connections = 3;
+  int32 max_connections = 4;
+  double query_avg_time_ms = 5;
+}
+
+message GetServiceMetricsRequest {
+  string service_name = 1; // specific service or "all"
+}
+
+message GetServiceMetricsResponse {
+  repeated ServiceMetric metrics = 1;
+}
+
+message ServiceMetric {
+  string service_name = 1;
+  int64 total_requests = 2;
+  int64 failed_requests = 3;
+  double avg_response_time_ms = 4;
+  double requests_per_second = 5;
+  double error_rate = 6; // percentage
+}
+
+// ==================== Audit Logs ====================
+
+message GetAuditLogsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string action_type = 3; // all, user_banned, user_deleted, order_cancelled, etc.
+  int64 admin_id = 4; // filter by admin who performed action
+  google.protobuf.Timestamp date_from = 5;
+  google.protobuf.Timestamp date_to = 6;
+}
+
+message GetAuditLogsResponse {
+  repeated AuditLog logs = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message AuditLog {
+  int64 id = 1;
+  int64 admin_id = 2;
+  string admin_email = 3;
+  string action_type = 4;
+  string entity_type = 5; // user, order, product
+  int64 entity_id = 6;
+  string details = 7; // JSON string with action details
+  string ip_address = 8;
+  google.protobuf.Timestamp created_at = 9;
+}
