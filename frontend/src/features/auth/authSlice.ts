@@ -2,11 +2,44 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AuthState, User } from '../../types/auth.types';
 
+// Check if token is expired
+const isTokenExpired = (token: string | null): boolean => {
+  if (!token) return true;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const exp = payload.exp * 1000; // Convert to milliseconds
+    return Date.now() >= exp;
+  } catch {
+    return true;
+  }
+};
+
+// Load user from localStorage if available
+const loadUserFromStorage = (): User | null => {
+  try {
+    const userStr = localStorage.getItem('user');
+    return userStr ? JSON.parse(userStr) : null;
+  } catch {
+    return null;
+  }
+};
+
+// Check if stored token is valid
+const storedAccessToken = localStorage.getItem('accessToken');
+const isTokenValid = storedAccessToken && !isTokenExpired(storedAccessToken);
+
+// Clear localStorage if token is expired
+if (!isTokenValid && storedAccessToken) {
+  console.log('⚠️ Token expired, clearing localStorage');
+  localStorage.clear();
+}
+
 const initialState: AuthState = {
-  user: null,
-  accessToken: localStorage.getItem('accessToken'),
-  refreshToken: localStorage.getItem('refreshToken'),
-  isAuthenticated: !!localStorage.getItem('accessToken'),
+  user: isTokenValid ? loadUserFromStorage() : null,
+  accessToken: isTokenValid ? storedAccessToken : null,
+  refreshToken: isTokenValid ? localStorage.getItem('refreshToken') : null,
+  isAuthenticated: isTokenValid,
   isLoading: false,
   error: null,
 };

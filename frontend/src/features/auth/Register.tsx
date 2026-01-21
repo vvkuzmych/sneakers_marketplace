@@ -3,8 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAppDispatch } from '../../app/hooks';
 import { useRegisterMutation } from './authApi';
 import { setCredentials } from './authSlice';
-import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
+import styles from './Register.module.css';
 
 export function Register() {
   const [formData, setFormData] = useState({
@@ -27,7 +27,20 @@ export function Register() {
     
     try {
       const result = await register(formData).unwrap();
-      dispatch(setCredentials(result));
+      
+      // Backend returns snake_case, convert to camelCase
+      const credentials = {
+        user: result.user,
+        accessToken: (result as any).access_token || result.accessToken,
+        refreshToken: (result as any).refresh_token || result.refreshToken,
+      };
+      
+      console.log('✅ Registration successful, tokens:', {
+        accessToken: credentials.accessToken?.substring(0, 20) + '...',
+        refreshToken: credentials.refreshToken?.substring(0, 20) + '...',
+      });
+      
+      dispatch(setCredentials(credentials));
       navigate('/products');
     } catch (err) {
       console.error('Registration failed:', err);
@@ -35,24 +48,24 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className={styles.container}>
+      <div className={styles.formWrapper}>
+        <div className={styles.header}>
+          <h2 className={styles.title}>
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className={styles.subtitle}>
             Or{' '}
-            <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+            <Link to="/login" className={styles.link}>
               sign in to existing account
             </Link>
           </p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className={styles.form} onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">
+            <div className={styles.errorBox}>
+              <p className={styles.errorText}>
                 {('data' in error && typeof error.data === 'object' && error.data !== null && 'error' in error.data)
                   ? String(error.data.error)
                   : 'Registration failed. Please try again.'}
@@ -60,8 +73,8 @@ export function Register() {
             </div>
           )}
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <div className={styles.inputGroup}>
+            <div className={styles.nameGroup}>
               <Input
                 label="First Name"
                 name="firstName"
@@ -108,13 +121,15 @@ export function Register() {
             />
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            isLoading={isLoading}
-          >
-            Create account
-          </Button>
+          <div className={styles.buttonWrapper}>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={styles.button}
+            >
+              {isLoading ? 'Loading...' : 'Create account'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

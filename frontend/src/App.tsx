@@ -6,6 +6,7 @@ import { Login } from './features/auth/Login';
 import { Register } from './features/auth/Register';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import { ProductList } from './features/products/ProductList';
+import BiddingPage from './features/bidding/BiddingPage';
 
 function App() {
   return (
@@ -20,6 +21,15 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/products" element={<ProductList />} />
+              <Route path="/bidding" element={<Navigate to="/products" replace />} />
+              <Route
+                path="/bidding/:productId"
+                element={
+                  <ProtectedRoute>
+                    <BiddingPage />
+                  </ProtectedRoute>
+                }
+              />
               
               {/* Protected routes */}
               <Route
