@@ -70,6 +70,8 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub) *gin.En
 		{
 			bidding.POST("/bids", biddingHandler.PlaceBid)
 			bidding.POST("/asks", biddingHandler.PlaceAsk)
+			bidding.GET("/bids/product/:product_id", biddingHandler.GetProductBids)
+			bidding.GET("/asks/product/:product_id", biddingHandler.GetProductAsks)
 		}
 
 		// Market routes (public)
