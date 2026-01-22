@@ -19,6 +19,7 @@ import (
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/database"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/logger"
 	pb "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/bidding"
+	notificationPb "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/notification"
 )
 
 func main() {
@@ -49,8 +50,30 @@ func main() {
 	// Initialize repository
 	biddingRepo := repository.NewBiddingRepository(db)
 
+	// Connect to Notification Service
+	notificationConn, err := grpc.Dial(
+		"localhost:50056", // Notification Service port
+		grpc.WithInsecure(),
+		grpc.WithBlock(),
+		grpc.WithTimeout(5*time.Second),
+	)
+	if err != nil {
+		log.Warnf("Failed to connect to Notification Service: %v (continuing without notifications)", err)
+	}
+	defer func() {
+		if notificationConn != nil {
+			notificationConn.Close()
+		}
+	}()
+
+	var notificationClient notificationPb.NotificationServiceClient
+	if notificationConn != nil {
+		notificationClient = notificationPb.NewNotificationServiceClient(notificationConn)
+		log.Info("Connected to Notification Service")
+	}
+
 	// Initialize service
-	biddingService := service.NewBiddingService(biddingRepo)
+	biddingService := service.NewBiddingService(biddingRepo, notificationClient)
 
 	// Initialize gRPC handler
 	biddingHandler := handler.NewBiddingHandler(biddingService)

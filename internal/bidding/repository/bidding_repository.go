@@ -28,6 +28,9 @@ func (r *BiddingRepository) PlaceBid(ctx context.Context, bid *model.Bid) error 
 		RETURNING id, created_at, updated_at
 	`
 
+	// DEBUG: Log what we're about to insert
+	println("🔍 Repository PlaceBid SQL params: userID=", bid.UserID, "productID=", bid.ProductID, "sizeID=", bid.SizeID, "price=", bid.Price, "quantity=", bid.Quantity, "status=", bid.Status)
+
 	err := r.db.QueryRow(ctx, query,
 		bid.UserID,
 		bid.ProductID,
@@ -39,9 +42,11 @@ func (r *BiddingRepository) PlaceBid(ctx context.Context, bid *model.Bid) error 
 	).Scan(&bid.ID, &bid.CreatedAt, &bid.UpdatedAt)
 
 	if err != nil {
+		println("🔴 Repository PlaceBid SQL ERROR:", err.Error())
 		return fmt.Errorf("failed to place bid: %w", err)
 	}
 
+	println("✅ Repository PlaceBid SUCCESS: bidID=", bid.ID)
 	return nil
 }
 
@@ -269,6 +274,9 @@ func (r *BiddingRepository) PlaceAsk(ctx context.Context, ask *model.Ask) error 
 		RETURNING id, created_at, updated_at
 	`
 
+	// DEBUG: Log what we're about to insert
+	println("🔍 Repository PlaceAsk SQL params: userID=", ask.UserID, "productID=", ask.ProductID, "sizeID=", ask.SizeID, "price=", ask.Price, "quantity=", ask.Quantity, "status=", ask.Status)
+
 	err := r.db.QueryRow(ctx, query,
 		ask.UserID,
 		ask.ProductID,
@@ -280,9 +288,11 @@ func (r *BiddingRepository) PlaceAsk(ctx context.Context, ask *model.Ask) error 
 	).Scan(&ask.ID, &ask.CreatedAt, &ask.UpdatedAt)
 
 	if err != nil {
+		println("🔴 Repository PlaceAsk SQL ERROR:", err.Error())
 		return fmt.Errorf("failed to place ask: %w", err)
 	}
 
+	println("✅ Repository PlaceAsk SUCCESS: askID=", ask.ID)
 	return nil
 }
 
