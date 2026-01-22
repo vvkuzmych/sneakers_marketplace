@@ -113,7 +113,10 @@ func validateToken(tokenString string) (int64, string, error) {
 		return 0, "", fmt.Errorf("invalid user_id type")
 	}
 
-	email, _ := claims["email"].(string)
+	email, ok := claims["email"].(string)
+	if !ok {
+		email = "" // Default to empty string if email is not present
+	}
 
 	return userID, email, nil
 }

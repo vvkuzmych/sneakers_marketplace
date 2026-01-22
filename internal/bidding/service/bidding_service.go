@@ -144,7 +144,7 @@ func (s *BiddingService) createMatch(ctx context.Context, bid *model.Bid, ask *m
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// Match price is the ask price (seller's price)
 	matchPrice := ask.Price
@@ -226,9 +226,9 @@ func (s *BiddingService) CancelBid(ctx context.Context, bidID, userID int64) err
 		return fmt.Errorf("unauthorized: not bid owner")
 	}
 
-	// Check if can be cancelled
+	// Check if can be canceled
 	if bid.Status != model.StatusActive {
-		return fmt.Errorf("bid cannot be cancelled: status is %s", bid.Status)
+		return fmt.Errorf("bid cannot be canceled: status is %s", bid.Status)
 	}
 
 	// Update status
@@ -277,9 +277,9 @@ func (s *BiddingService) CancelAsk(ctx context.Context, askID, userID int64) err
 		return fmt.Errorf("unauthorized: not ask owner")
 	}
 
-	// Check if can be cancelled
+	// Check if can be canceled
 	if ask.Status != model.StatusActive {
-		return fmt.Errorf("ask cannot be cancelled: status is %s", ask.Status)
+		return fmt.Errorf("ask cannot be canceled: status is %s", ask.Status)
 	}
 
 	// Update status

@@ -222,7 +222,7 @@ func (h *OrderHandler) CancelOrder(ctx context.Context, req *pb.CancelOrderReque
 	}
 	if req.CancelledByUserId == 0 {
 		return &pb.CancelOrderResponse{
-			Error: "cancelled_by_user_id is required",
+			Error: "canceled_by_user_id is required",
 		}, nil
 	}
 	if req.Reason == "" {

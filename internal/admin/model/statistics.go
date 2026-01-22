@@ -27,76 +27,76 @@ type RevenueDataPoint struct {
 
 // RevenueReport represents a revenue report
 type RevenueReport struct {
+	DateFrom     time.Time
+	DateTo       time.Time
+	GroupBy      string
 	DataPoints   []RevenueDataPoint
 	TotalRevenue float64
 	TotalFees    float64
-	DateFrom     time.Time
-	DateTo       time.Time
-	GroupBy      string // "day", "week", "month"
 }
 
 // UserActivityReport represents user activity statistics
 type UserActivityReport struct {
+	DateFrom            time.Time
+	DateTo              time.Time
 	NewUsers            int32
 	ActiveUsers         int32
 	TotalBidsPlaced     int32
 	TotalAsksPlaced     int32
 	TotalMatchesCreated int32
-	DateFrom            time.Time
-	DateTo              time.Time
 }
 
 // OrderSummary represents an order summary for admin view
 type OrderSummary struct {
-	ID          int64
+	CreatedAt   time.Time
+	ProductName string
 	OrderNumber string
-	BuyerID     int64
-	SellerID    int64
+	Status      string
 	BuyerEmail  string
 	SellerEmail string
 	ProductID   int64
-	ProductName string
+	ID          int64
 	Subtotal    float64
 	BuyerFee    float64
 	SellerFee   float64
 	Total       float64
-	Status      string
-	CreatedAt   time.Time
+	SellerID    int64
+	BuyerID     int64
 }
 
 // OrderStatusChange represents a status change in order history
 type OrderStatusChange struct {
+	ChangedAt time.Time
 	Status    string
 	ChangedBy string
 	Notes     string
-	ChangedAt time.Time
 }
 
 // ProductSummary represents a product summary for admin view
 type ProductSummary struct {
-	ID           int64
+	CreatedAt    time.Time
 	SKU          string
 	Name         string
 	Brand        string
 	Model        string
+	ID           int64
 	RetailPrice  float64
-	IsActive     bool
-	IsFeatured   bool
-	TotalBids    int32
+	LowestAsk    float64
+	HighestBid   float64
 	TotalAsks    int32
 	TotalMatches int32
-	HighestBid   float64
-	LowestAsk    float64
-	CreatedAt    time.Time
+	TotalBids    int32
+	IsFeatured   bool
+	IsActive     bool
 }
 
 // ServiceHealth represents health status of a service
 type ServiceHealth struct {
 	ServiceName   string
-	Status        string // "healthy", "degraded", "down"
+	Status        string
 	Address       string
-	UptimeSeconds int64
 	Version       string
+	UptimeSeconds int64
 }
 
 // DatabaseHealth represents database health metrics
@@ -133,19 +133,19 @@ type GetUserActivityReportParams struct {
 
 // ListOrdersParams contains parameters for listing orders
 type ListOrdersParams struct {
-	Page      int32
-	PageSize  int32
+	DateFrom  *time.Time
+	DateTo    *time.Time
 	Status    string
 	SortBy    string
 	SortOrder string
-	DateFrom  *time.Time
-	DateTo    *time.Time
+	Page      int32
+	PageSize  int32
 }
 
 // ListProductsParams contains parameters for listing products
 type ListProductsParams struct {
+	Status   string
+	Search   string
 	Page     int32
 	PageSize int32
-	Status   string // "all", "active", "hidden", "featured"
-	Search   string
 }

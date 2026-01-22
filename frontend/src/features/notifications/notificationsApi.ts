@@ -56,10 +56,11 @@ export const notificationsApi = createApi({
   }),
 });
 
-export const {
-  useGetNotificationsQuery,
-  useGetUnreadCountQuery,
-  useMarkAsReadMutation,
-  useGetPreferencesQuery,
-  useUpdatePreferencesMutation,
-} = notificationsApi;
+// Export hooks when needed
+// export const {
+//   useGetNotificationsQuery,
+//   useGetUnreadCountQuery,
+//   useMarkAsReadMutation,
+//   useGetPreferencesQuery,
+//   useUpdatePreferencesMutation,
+// } = notificationsApi;

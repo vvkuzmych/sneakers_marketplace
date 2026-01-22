@@ -37,9 +37,9 @@ func (r *AdminRepository) ListUsers(ctx context.Context, params model.ListUsersP
 
 	// Apply status filter
 	if params.Status == "active" {
-		query += fmt.Sprintf(" AND is_active = true AND is_banned = false")
+		query += " AND is_active = true AND is_banned = false"
 	} else if params.Status == "banned" {
-		query += fmt.Sprintf(" AND is_banned = true")
+		query += " AND is_banned = true"
 	}
 
 	// Apply role filter
@@ -337,8 +337,10 @@ func (r *AdminRepository) ListAuditLogs(ctx context.Context, params model.ListAu
 			return nil, 0, fmt.Errorf("failed to scan audit log: %w", err)
 		}
 
-		// Parse details
-		log.Details, _ = model.ParseDetailsFromJSON(detailsJSON)
+		// Parse details (ignore error if JSON is invalid)
+		if details, err := model.ParseDetailsFromJSON(detailsJSON); err == nil {
+			log.Details = details
+		}
 		logs = append(logs, log)
 	}
 

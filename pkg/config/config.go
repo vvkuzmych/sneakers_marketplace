@@ -9,54 +9,38 @@ import (
 
 // Config holds all application configuration
 type Config struct {
-	Env string
-
-	// Database
-	Database DatabaseConfig
-
-	// Redis
-	Redis RedisConfig
-
-	// Kafka
-	Kafka KafkaConfig
-
-	// JWT
-	JWT JWTConfig
-
-	// Server
-	Server ServerConfig
-
-	// Stripe
-	Stripe StripeConfig
-
-	// Email
-	Email EmailConfig
-
-	// Services (for service discovery)
 	Services ServicesConfig
+	Database DatabaseConfig
+	Redis    RedisConfig
+	Stripe   StripeConfig
+	Email    EmailConfig
+	Kafka    KafkaConfig
+	Env      string
+	JWT      JWTConfig
+	Server   ServerConfig
 }
 
 type DatabaseConfig struct {
 	Host     string
-	Port     int
 	User     string
 	Password string
 	DBName   string
 	SSLMode  string
 	URL      string
+	Port     int
 }
 
 type RedisConfig struct {
 	Host     string
-	Port     int
 	Password string
-	DB       int
 	URL      string
+	Port     int
+	DB       int
 }
 
 type KafkaConfig struct {
-	Brokers []string
 	GroupID string
+	Brokers []string
 }
 
 type JWTConfig struct {
@@ -66,8 +50,8 @@ type JWTConfig struct {
 }
 
 type ServerConfig struct {
-	Port            int
 	Host            string
+	Port            int
 	ReadTimeout     time.Duration
 	WriteTimeout    time.Duration
 	ShutdownTimeout time.Duration

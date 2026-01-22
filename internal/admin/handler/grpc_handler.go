@@ -260,7 +260,7 @@ func (h *AdminHandler) CancelOrder(ctx context.Context, req *adminpb.CancelOrder
 	ipAddress := getIPFromContext(ctx)
 	reason := req.Reason
 	if reason == "" {
-		reason = "Cancelled by admin"
+		reason = "Canceled by admin"
 	}
 
 	err = h.service.CancelOrder(ctx, req.OrderId, adminID, reason, ipAddress)
@@ -270,7 +270,7 @@ func (h *AdminHandler) CancelOrder(ctx context.Context, req *adminpb.CancelOrder
 
 	return &adminpb.CancelOrderResponse{
 		Success: true,
-		Message: "Order cancelled successfully",
+		Message: "Order canceled successfully",
 	}, nil
 }
 
@@ -579,7 +579,7 @@ func productSummaryToProto(p *model.ProductSummary) *adminpb.ProductSummary {
 }
 
 func auditLogToProto(log *model.AuditLog) *adminpb.AuditLog {
-	detailsJSON, _ := log.DetailsJSON()
+	detailsJSON, _ := log.DetailsJSON() // Ignore error, return empty string on failure
 	return &adminpb.AuditLog{
 		Id:         log.ID,
 		AdminId:    log.AdminID,

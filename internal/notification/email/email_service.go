@@ -7,10 +7,10 @@ import (
 )
 
 type EmailService struct {
+	auth smtp.Auth
 	host string
 	port string
 	from string
-	auth smtp.Auth
 }
 
 func NewEmailService() *EmailService {

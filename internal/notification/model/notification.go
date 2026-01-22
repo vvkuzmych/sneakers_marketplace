@@ -22,49 +22,37 @@ const (
 
 // Notification represents a notification in the system
 type Notification struct {
-	ID      int64
-	UserID  int64
-	Type    string
-	Title   string
-	Message string
-	Data    json.RawMessage // JSON context (order_id, match_id, etc.)
-
-	// Delivery status
-	EmailSent   bool
+	CreatedAt   time.Time
 	EmailSentAt sql.NullTime
-	PushSent    bool
+	ReadAt      sql.NullTime
 	PushSentAt  sql.NullTime
-
-	// Read status
-	IsRead bool
-	ReadAt sql.NullTime
-
-	CreatedAt time.Time
+	Title       string
+	Message     string
+	Type        string
+	Data        json.RawMessage
+	ID          int64
+	UserID      int64
+	EmailSent   bool
+	PushSent    bool
+	IsRead      bool
 }
 
 // NotificationPreferences represents user's notification preferences
 type NotificationPreferences struct {
-	UserID int64
-
-	// Email preferences
-	EmailEnabled         bool
-	EmailMatchCreated    bool
-	EmailOrderCreated    bool
+	UpdatedAt            time.Time
+	CreatedAt            time.Time
+	UserID               int64
+	EmailPayoutCompleted bool
 	EmailOrderShipped    bool
 	EmailPaymentReceived bool
-	EmailPayoutCompleted bool
-
-	// Push preferences
-	PushEnabled        bool
-	PushMatchCreated   bool
-	PushOrderUpdates   bool
-	PushPaymentUpdates bool
-
-	// In-app preferences
-	InAppEnabled bool
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	EmailOrderCreated    bool
+	PushEnabled          bool
+	PushMatchCreated     bool
+	PushOrderUpdates     bool
+	PushPaymentUpdates   bool
+	InAppEnabled         bool
+	EmailMatchCreated    bool
+	EmailEnabled         bool
 }
 
 // ShouldSendEmail checks if email notification should be sent for this type

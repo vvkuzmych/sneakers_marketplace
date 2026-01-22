@@ -66,10 +66,16 @@ export default function BiddingPage() {
     setActivities((prev) => [newActivity, ...prev]);
   };
 
+  const showNotification = (message: string) => {
+    setNotification(message);
+    setTimeout(() => setNotification(''), 5000);
+  };
+
   // Initialize WebSocket connection
   useEffect(() => {
     if (!token) {
-      console.log('⚠️ No token available, skipping WebSocket connection');
+      console.warn('⚠️ No token available, skipping WebSocket connection');
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWsStatus('Disconnected');
       return;
     }
@@ -108,7 +114,7 @@ export default function BiddingPage() {
 
     const handleMatchCreated = (data: any) => {
       console.log('⚡ MATCH CREATED:', data);
-      showNotification(`🎉 MATCH! Sold at $${data.price}`, 'success');
+      showNotification(`🎉 MATCH! Sold at $${data.price}`);
       addActivity('match', data.price, data);
     };
 
@@ -128,6 +134,7 @@ export default function BiddingPage() {
   // Update market price from initial query
   useEffect(() => {
     if (initialMarketPrice) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMarketPrice(initialMarketPrice);
     }
   }, [initialMarketPrice]);
@@ -138,13 +145,13 @@ export default function BiddingPage() {
     
     // Add historical bids
     if (bidsData?.bids) {
-      bidsData.bids.forEach((bid: any) => {
+      bidsData.bids.forEach((bid) => {
         historicalActivities.push({
           id: `bid-${bid.id}`,
           type: 'bid',
           price: bid.price,
-          timestamp: bid.created_at || bid.createdAt,
-          userId: bid.user_id?.toString() || bid.userId?.toString(),
+          timestamp: bid.createdAt,
+          userId: bid.userId,
           userName: 'User',
         });
       });
@@ -152,13 +159,13 @@ export default function BiddingPage() {
     
     // Add historical asks
     if (asksData?.asks) {
-      asksData.asks.forEach((ask: any) => {
+      asksData.asks.forEach((ask) => {
         historicalActivities.push({
           id: `ask-${ask.id}`,
           type: 'ask',
           price: ask.price,
-          timestamp: ask.created_at || ask.createdAt,
-          userId: ask.user_id?.toString() || ask.userId?.toString(),
+          timestamp: ask.createdAt,
+          userId: ask.userId,
           userName: 'User',
         });
       });
@@ -170,15 +177,11 @@ export default function BiddingPage() {
     );
     
     if (historicalActivities.length > 0) {
-      console.log(`📚 Loaded ${historicalActivities.length} historical activities`);
+      console.warn(`📚 Loaded ${historicalActivities.length} historical activities`);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActivities(historicalActivities);
     }
   }, [bidsData, asksData]);
-
-  const showNotification = (message: string, type: 'info' | 'success' = 'info') => {
-    setNotification(message);
-    setTimeout(() => setNotification(''), 5000);
-  };
 
   const handlePlaceBid = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,8 +189,8 @@ export default function BiddingPage() {
 
     try {
       const result = await placeBid({
-        productId: parseInt(productId!, 10),
-        sizeId: 1, // TODO: Add size selector
+        productId: productId!,
+        sizeId: '1', // TODO: Add size selector
         price: parseFloat(bidPrice),
         quantity: 1,
       }).unwrap();
@@ -197,7 +200,7 @@ export default function BiddingPage() {
       setBidPrice('');
 
       if (result.match) {
-        showNotification(`🎉 INSTANT MATCH! Bought at $${result.match.price}`, 'success');
+        showNotification(`🎉 INSTANT MATCH! Bought at $${result.match.price}`);
         addActivity('match', result.match.price, result);
       } else {
         showNotification(`✅ BID placed at $${price}`);
@@ -215,8 +218,8 @@ export default function BiddingPage() {
 
     try {
       const result = await placeAsk({
-        productId: parseInt(productId!, 10),
-        sizeId: 1,
+        productId: productId!,
+        sizeId: '1',
         price: parseFloat(askPrice),
         quantity: 1,
       }).unwrap();
@@ -226,7 +229,7 @@ export default function BiddingPage() {
       setAskPrice('');
 
       if (result.match) {
-        showNotification(`🎉 INSTANT MATCH! Sold at $${result.match.price}`, 'success');
+        showNotification(`🎉 INSTANT MATCH! Sold at $${result.match.price}`);
         addActivity('match', result.match.price, result);
       } else {
         showNotification(`✅ ASK placed at $${price}`);

@@ -8,17 +8,17 @@ import (
 
 // User represents a user in the system (GORM version)
 type User struct {
-	ID           int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 	Email        string    `gorm:"uniqueIndex;not null;size:255" json:"email"`
 	PasswordHash string    `gorm:"column:password_hash;not null" json:"-"`
 	FirstName    string    `gorm:"size:100" json:"first_name"`
 	LastName     string    `gorm:"size:100" json:"last_name"`
 	Phone        string    `gorm:"size:20" json:"phone"`
-	Role         string    `gorm:"size:20;default:user" json:"role"` // user, admin
+	Role         string    `gorm:"size:20;default:user" json:"role"`
+	ID           int64     `gorm:"primaryKey;autoIncrement" json:"id"`
 	IsVerified   bool      `gorm:"default:false" json:"is_verified"`
 	IsActive     bool      `gorm:"default:true" json:"is_active"`
-	CreatedAt    time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt    time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
 // TableName overrides the table name used by User to `users`
@@ -51,19 +51,19 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 
 // Address represents a user address (GORM version)
 type Address struct {
-	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID      int64     `gorm:"not null;index" json:"user_id"`
-	User        User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"` // Relation
-	AddressType string    `gorm:"size:20" json:"address_type"`                            // shipping, billing
+	User        User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
+	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	City        string    `gorm:"size:100" json:"city"`
 	StreetLine1 string    `gorm:"size:255" json:"street_line1"`
 	StreetLine2 string    `gorm:"size:255" json:"street_line2"`
-	City        string    `gorm:"size:100" json:"city"`
 	State       string    `gorm:"size:100" json:"state"`
 	PostalCode  string    `gorm:"size:20" json:"postal_code"`
 	Country     string    `gorm:"size:100" json:"country"`
+	AddressType string    `gorm:"size:20" json:"address_type"`
+	ID          int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID      int64     `gorm:"not null;index" json:"user_id"`
 	IsDefault   bool      `gorm:"default:false" json:"is_default"`
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }
 
 // TableName overrides the table name
@@ -73,15 +73,15 @@ func (Address) TableName() string {
 
 // Session represents a user session (GORM version)
 type Session struct {
-	ID               int64     `gorm:"primaryKey;autoIncrement" json:"id"`
-	UserID           int64     `gorm:"not null;index" json:"user_id"`
 	User             User      `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
-	TokenHash        string    `gorm:"size:255;not null" json:"token_hash"`
-	RefreshTokenHash string    `gorm:"size:255;not null" json:"refresh_token_hash"`
-	IPAddress        *string   `gorm:"size:45" json:"ip_address,omitempty"`
-	UserAgent        *string   `gorm:"size:500" json:"user_agent,omitempty"`
 	ExpiresAt        time.Time `gorm:"not null;index" json:"expires_at"`
 	CreatedAt        time.Time `gorm:"autoCreateTime" json:"created_at"`
+	IPAddress        *string   `gorm:"size:45" json:"ip_address,omitempty"`
+	UserAgent        *string   `gorm:"size:500" json:"user_agent,omitempty"`
+	TokenHash        string    `gorm:"size:255;not null" json:"token_hash"`
+	RefreshTokenHash string    `gorm:"size:255;not null" json:"refresh_token_hash"`
+	ID               int64     `gorm:"primaryKey;autoIncrement" json:"id"`
+	UserID           int64     `gorm:"not null;index" json:"user_id"`
 }
 
 // TableName overrides the table name

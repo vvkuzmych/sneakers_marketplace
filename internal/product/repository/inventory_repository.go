@@ -25,7 +25,7 @@ func (r *InventoryRepository) AddSize(ctx context.Context, size *model.Size) err
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// Insert size
 	query := `
@@ -120,7 +120,7 @@ func (r *InventoryRepository) UpdateInventory(ctx context.Context, sizeID int64,
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// Get current size
 	var size model.Size
@@ -179,7 +179,7 @@ func (r *InventoryRepository) ReserveInventory(ctx context.Context, sizeID int64
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// Get and lock size
 	var size model.Size
@@ -221,7 +221,7 @@ func (r *InventoryRepository) ReleaseInventory(ctx context.Context, sizeID int64
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// Get and lock size
 	var size model.Size
@@ -262,7 +262,7 @@ func (r *InventoryRepository) CompleteSale(ctx context.Context, sizeID int64, qu
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	// Get and lock size
 	var size model.Size

@@ -1,0 +1,92 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  
+  govet:
+    enable-all: true
+  
+  gocyclo:
+    min-complexity: 15
+  
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  
+  misspell:
+    locale: US
+  
+  lll:
+    line-length: 120
+  
+  goimports:
+    local-prefixes: github.com/vkuzm/sneakers_marketplace
+  
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+  
+  revive:
+    rules:
+      - name: unexported-return
+        disabled: true
+      - name: unused-parameter
+        disabled: false
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck       # Checks for unchecked errors
+    - gosimple       # Simplify code
+    - govet          # Reports suspicious constructs
+    - ineffassign    # Detects ineffectual assignments
+    - staticcheck    # Go static analysis
+    - unused         # Checks for unused constants, variables, functions and types
+    - typecheck      # Type checks
+    - gofmt          # Checks code formatting
+    - goimports      # Checks import statements
+    - misspell       # Finds commonly misspelled words
+    - goconst        # Finds repeated strings that could be constants
+    - gocyclo        # Computes cyclomatic complexity
+    - revive         # Fast, configurable, extensible linter
+    - gosec          # Security problems
+    - stylecheck     # Style check
+    - unconvert      # Remove unnecessary type conversions
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - gosec
+    
+    # Exclude protobuf generated files
+    - path: \.pb\.go$
+      linters:
+        - all
+    
+    # Exclude migrations
+    - path: migrations/
+      linters:
+        - all
+  
+  max-issues-per-linter: 50
+  max-same-issues: 3
+  new: false
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true

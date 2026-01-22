@@ -46,8 +46,9 @@ export const ordersApi = createApi({
   }),
 });
 
-export const {
-  useGetOrderQuery,
-  useGetBuyerOrdersQuery,
-  useGetSellerOrdersQuery,
-} = ordersApi;
+// Export hooks when needed
+// export const {
+//   useGetOrderQuery,
+//   useGetBuyerOrdersQuery,
+//   useGetSellerOrdersQuery,
+// } = ordersApi;

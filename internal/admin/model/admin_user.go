@@ -4,22 +4,22 @@ import "time"
 
 // AdminUser represents a user from admin perspective
 type AdminUser struct {
-	ID          int64
-	Email       string
-	FirstName   string
-	LastName    string
-	Phone       string
-	Role        string // "user" or "admin"
-	IsActive    bool
-	IsBanned    bool
-	BanReason   *string
-	BannedAt    *time.Time
-	BannedBy    *int64
-	TotalOrders int32
-	TotalSpent  float64
-	LastLogin   *time.Time
-	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	CreatedAt   time.Time
+	BanReason   *string
+	LastLogin   *time.Time
+	BannedBy    *int64
+	BannedAt    *time.Time
+	Phone       string
+	Role        string
+	LastName    string
+	FirstName   string
+	Email       string
+	ID          int64
+	TotalSpent  float64
+	TotalOrders int32
+	IsBanned    bool
+	IsActive    bool
 }
 
 // UserStatistics represents user activity statistics
@@ -35,10 +35,10 @@ type UserStatistics struct {
 
 // BanUserParams contains parameters for banning a user
 type BanUserParams struct {
+	BannedAt time.Time
+	Reason   string
 	UserID   int64
 	AdminID  int64
-	Reason   string
-	BannedAt time.Time
 }
 
 // UnbanUserParams contains parameters for unbanning a user
@@ -49,25 +49,25 @@ type UnbanUserParams struct {
 
 // UpdateUserRoleParams contains parameters for updating user role
 type UpdateUserRoleParams struct {
+	NewRole string
 	UserID  int64
 	AdminID int64
-	NewRole string
 }
 
 // DeleteUserParams contains parameters for deleting a user
 type DeleteUserParams struct {
+	Reason  string
 	UserID  int64
 	AdminID int64
-	Reason  string
 }
 
 // ListUsersParams contains parameters for listing users
 type ListUsersParams struct {
+	Status   string
+	Role     string
+	Search   string
 	Page     int32
 	PageSize int32
-	Status   string // "all", "active", "banned"
-	Role     string // "all", "user", "admin"
-	Search   string // email or name search
 }
 
 // FullName returns user's full name

@@ -24,27 +24,27 @@ const (
 
 // Client represents a WebSocket client connection
 type Client struct {
-	UserID int64
-	Email  string
 	Hub    *Hub
 	Conn   *websocket.Conn
 	Send   chan []byte
+	Email  string
+	UserID int64
 }
 
 // Message represents a WebSocket message
 type Message struct {
-	Type string      `json:"type"` // "notification", "ping", "pong"
 	Data interface{} `json:"data"`
+	Type string      `json:"type"`
 }
 
 // NotificationData represents notification payload
 type NotificationData struct {
-	ID        int64  `json:"id"`
 	Title     string `json:"title"`
 	Message   string `json:"message"`
 	Type      string `json:"notification_type"`
 	Link      string `json:"link,omitempty"`
 	Timestamp string `json:"timestamp"`
+	ID        int64  `json:"id"`
 }
 
 // readPump pumps messages from the WebSocket connection to the hub

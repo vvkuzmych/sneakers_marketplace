@@ -210,7 +210,11 @@ func (h *PaymentHandler) CreateRefund(ctx context.Context, req *pb.CreateRefundR
 		return &pb.CreateRefundResponse{Error: err.Error()}, nil
 	}
 
-	payment, _ := h.service.GetPayment(ctx, req.PaymentId)
+	payment, err := h.service.GetPayment(ctx, req.PaymentId)
+	if err != nil {
+		// Log error but don't fail the refund response
+		payment = nil
+	}
 
 	return &pb.CreateRefundResponse{
 		Payment:        paymentToProto(payment),

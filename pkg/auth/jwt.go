@@ -16,10 +16,10 @@ type JWTManager struct {
 
 // Claims represents JWT claims
 type Claims struct {
-	UserID int64  `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"` // user, admin
 	jwt.RegisteredClaims
+	Email  string `json:"email"`
+	Role   string `json:"role"`
+	UserID int64  `json:"user_id"`
 }
 
 // NewJWTManager creates a new JWT manager

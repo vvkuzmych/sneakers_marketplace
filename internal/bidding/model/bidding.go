@@ -12,7 +12,7 @@ type Bid struct {
 	SizeID    int64      `json:"size_id"`
 	Price     float64    `json:"price"`
 	Quantity  int        `json:"quantity"`
-	Status    string     `json:"status"` // active, matched, cancelled, expired
+	Status    string     `json:"status"` // active, matched, canceled, expired
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	MatchedAt *time.Time `json:"matched_at,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`
@@ -27,7 +27,7 @@ type Ask struct {
 	SizeID    int64      `json:"size_id"`
 	Price     float64    `json:"price"`
 	Quantity  int        `json:"quantity"`
-	Status    string     `json:"status"` // active, matched, cancelled, expired
+	Status    string     `json:"status"` // active, matched, canceled, expired
 	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	MatchedAt *time.Time `json:"matched_at,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`
@@ -65,7 +65,7 @@ type MarketPrice struct {
 const (
 	StatusActive    = "active"
 	StatusMatched   = "matched"
-	StatusCancelled = "cancelled"
+	StatusCancelled = "canceled"
 	StatusExpired   = "expired"
 	StatusPending   = "pending"
 	StatusCompleted = "completed"

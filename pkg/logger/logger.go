@@ -15,10 +15,10 @@ type Logger struct {
 
 // Config holds logger configuration
 type Config struct {
-	Level      string // debug, info, warn, error
-	Format     string // json, console
-	TimeFormat string
 	Output     io.Writer
+	Level      string
+	Format     string
+	TimeFormat string
 }
 
 // New creates a new logger
