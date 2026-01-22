@@ -7,15 +7,15 @@ import (
 
 // AuditLog represents an admin action audit log entry
 type AuditLog struct {
-	ID         int64
-	AdminID    int64
+	CreatedAt  time.Time
+	Details    map[string]interface{}
 	AdminEmail string
 	ActionType string
 	EntityType string
-	EntityID   int64
-	Details    map[string]interface{}
 	IPAddress  string
-	CreatedAt  time.Time
+	ID         int64
+	AdminID    int64
+	EntityID   int64
 }
 
 // AuditAction types
@@ -24,7 +24,7 @@ const (
 	ActionUserUnbanned    = "user_unbanned"
 	ActionUserDeleted     = "user_deleted"
 	ActionUserRoleUpdated = "user_role_updated"
-	ActionOrderCancelled  = "order_cancelled"
+	ActionOrderCancelled  = "order_canceled"
 	ActionProductFeatured = "product_featured"
 	ActionProductHidden   = "product_hidden"
 )
@@ -38,22 +38,22 @@ const (
 
 // CreateAuditLogParams contains parameters for creating an audit log
 type CreateAuditLogParams struct {
-	AdminID    int64
+	Details    map[string]interface{}
 	ActionType string
 	EntityType string
-	EntityID   int64
-	Details    map[string]interface{}
 	IPAddress  string
+	AdminID    int64
+	EntityID   int64
 }
 
 // ListAuditLogsParams contains parameters for listing audit logs
 type ListAuditLogsParams struct {
-	Page       int32
-	PageSize   int32
-	ActionType string
-	AdminID    int64
 	DateFrom   *time.Time
 	DateTo     *time.Time
+	ActionType string
+	AdminID    int64
+	Page       int32
+	PageSize   int32
 }
 
 // DetailsJSON returns details as JSON string

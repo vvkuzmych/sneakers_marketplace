@@ -22,9 +22,9 @@ const (
 
 // UserContext holds user information from JWT
 type UserContext struct {
-	UserID int64
 	Email  string
 	Role   Role
+	UserID int64
 }
 
 // contextKey is the key for storing UserContext in context

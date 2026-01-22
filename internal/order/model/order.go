@@ -41,7 +41,7 @@ type Order struct {
 	ShippedAt   sql.NullTime `json:"shipped_at"`
 	DeliveredAt sql.NullTime `json:"delivered_at"`
 	CompletedAt sql.NullTime `json:"completed_at"`
-	CancelledAt sql.NullTime `json:"cancelled_at"`
+	CancelledAt sql.NullTime `json:"canceled_at"`
 
 	// Notes
 	BuyerNotes         sql.NullString `json:"buyer_notes"`
@@ -72,7 +72,7 @@ const (
 	StatusShipped        = "shipped"
 	StatusDelivered      = "delivered"
 	StatusCompleted      = "completed"
-	StatusCancelled      = "cancelled"
+	StatusCancelled      = "canceled"
 	StatusRefunded       = "refunded"
 )
 
@@ -134,7 +134,7 @@ func (o *Order) IsFinalStatus() bool {
 		o.Status == StatusRefunded
 }
 
-// CanBeCancelled checks if the order can be cancelled
+// CanBeCancelled checks if the order can be canceled
 func (o *Order) CanBeCancelled() bool {
 	return o.Status != StatusCompleted &&
 		o.Status != StatusCancelled &&

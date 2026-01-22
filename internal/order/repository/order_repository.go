@@ -82,7 +82,7 @@ func (r *OrderRepository) GetOrderByID(ctx context.Context, orderID int64) (*mod
 			status,
 			shipping_address_id,
 			tracking_number, carrier,
-			payment_at, shipped_at, delivered_at, completed_at, cancelled_at,
+			payment_at, shipped_at, delivered_at, completed_at, canceled_at,
 			buyer_notes, seller_notes, admin_notes, cancellation_reason,
 			created_at, updated_at
 		FROM orders
@@ -130,7 +130,7 @@ func (r *OrderRepository) GetOrderByOrderNumber(ctx context.Context, orderNumber
 			status,
 			shipping_address_id,
 			tracking_number, carrier,
-			payment_at, shipped_at, delivered_at, completed_at, cancelled_at,
+			payment_at, shipped_at, delivered_at, completed_at, canceled_at,
 			buyer_notes, seller_notes, admin_notes, cancellation_reason,
 			created_at, updated_at
 		FROM orders
@@ -178,7 +178,7 @@ func (r *OrderRepository) ListOrders(ctx context.Context, status string, page, p
 			status,
 			shipping_address_id,
 			tracking_number, carrier,
-			payment_at, shipped_at, delivered_at, completed_at, cancelled_at,
+			payment_at, shipped_at, delivered_at, completed_at, canceled_at,
 			buyer_notes, seller_notes, admin_notes, cancellation_reason,
 			created_at, updated_at
 		FROM orders
@@ -262,7 +262,7 @@ func (r *OrderRepository) GetBuyerOrders(ctx context.Context, buyerID int64, sta
 			status,
 			shipping_address_id,
 			tracking_number, carrier,
-			payment_at, shipped_at, delivered_at, completed_at, cancelled_at,
+			payment_at, shipped_at, delivered_at, completed_at, canceled_at,
 			buyer_notes, seller_notes, admin_notes, cancellation_reason,
 			created_at, updated_at
 		FROM orders
@@ -347,7 +347,7 @@ func (r *OrderRepository) GetSellerOrders(ctx context.Context, sellerID int64, s
 			status,
 			shipping_address_id,
 			tracking_number, carrier,
-			payment_at, shipped_at, delivered_at, completed_at, cancelled_at,
+			payment_at, shipped_at, delivered_at, completed_at, canceled_at,
 			buyer_notes, seller_notes, admin_notes, cancellation_reason,
 			created_at, updated_at
 		FROM orders
@@ -433,7 +433,7 @@ func (r *OrderRepository) UpdateOrderStatus(ctx context.Context, orderID int64, 
 	case model.StatusCompleted:
 		timestampCol = ", completed_at = NOW()"
 	case model.StatusCancelled, model.StatusRefunded:
-		timestampCol = ", cancelled_at = NOW()"
+		timestampCol = ", canceled_at = NOW()"
 	}
 
 	query := fmt.Sprintf(`
@@ -485,7 +485,7 @@ func (r *OrderRepository) CancelOrder(ctx context.Context, orderID int64, reason
 		SET 
 			status = $1,
 			cancellation_reason = $2,
-			cancelled_at = NOW()
+			canceled_at = NOW()
 		WHERE id = $3
 	`
 
@@ -547,7 +547,7 @@ func (r *OrderRepository) GetOrderByMatchID(ctx context.Context, matchID int64) 
 			status,
 			shipping_address_id,
 			tracking_number, carrier,
-			payment_at, shipped_at, delivered_at, completed_at, cancelled_at,
+			payment_at, shipped_at, delivered_at, completed_at, canceled_at,
 			buyer_notes, seller_notes, admin_notes, cancellation_reason,
 			created_at, updated_at
 		FROM orders

@@ -7,71 +7,43 @@ import (
 
 // Payment represents a payment transaction
 type Payment struct {
-	ID        int64  `json:"id"`
-	PaymentID string `json:"payment_id"`
-
-	// Relations
-	OrderID int64 `json:"order_id"`
-	UserID  int64 `json:"user_id"`
-
-	// Stripe details
+	UpdatedAt             time.Time      `json:"updated_at"`
+	CreatedAt             time.Time      `json:"created_at"`
+	RefundedAt            sql.NullTime   `json:"refunded_at"`
+	ProcessedAt           sql.NullTime   `json:"processed_at"`
+	Currency              string         `json:"currency"`
+	PaymentID             string         `json:"payment_id"`
+	Status                string         `json:"status"`
 	StripePaymentIntentID sql.NullString `json:"stripe_payment_intent_id"`
-	StripeChargeID        sql.NullString `json:"stripe_charge_id"`
 	StripeCustomerID      sql.NullString `json:"stripe_customer_id"`
-
-	// Amount
-	Amount   float64 `json:"amount"`
-	Currency string  `json:"currency"`
-
-	// Status
-	Status string `json:"status"`
-
-	// Payment method
-	PaymentMethod sql.NullString `json:"payment_method"`
-	CardLast4     sql.NullString `json:"card_last4"`
-	CardBrand     sql.NullString `json:"card_brand"`
-
-	// Refund
-	RefundedAmount float64        `json:"refunded_amount"`
-	RefundReason   sql.NullString `json:"refund_reason"`
-
-	// Timestamps
-	ProcessedAt sql.NullTime `json:"processed_at"`
-	RefundedAt  sql.NullTime `json:"refunded_at"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	PaymentMethod         sql.NullString `json:"payment_method"`
+	CardLast4             sql.NullString `json:"card_last4"`
+	CardBrand             sql.NullString `json:"card_brand"`
+	RefundReason          sql.NullString `json:"refund_reason"`
+	StripeChargeID        sql.NullString `json:"stripe_charge_id"`
+	Amount                float64        `json:"amount"`
+	RefundedAmount        float64        `json:"refunded_amount"`
+	ID                    int64          `json:"id"`
+	UserID                int64          `json:"user_id"`
+	OrderID               int64          `json:"order_id"`
 }
 
 // Payout represents a seller payout
 type Payout struct {
-	ID       int64  `json:"id"`
-	PayoutID string `json:"payout_id"`
-
-	// Relations
-	OrderID   int64 `json:"order_id"`
-	SellerID  int64 `json:"seller_id"`
-	PaymentID int64 `json:"payment_id"`
-
-	// Stripe Connect
-	StripeTransferID sql.NullString `json:"stripe_transfer_id"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+	CreatedAt        time.Time      `json:"created_at"`
+	ProcessedAt      sql.NullTime   `json:"processed_at"`
+	Currency         string         `json:"currency"`
+	PayoutID         string         `json:"payout_id"`
+	Status           string         `json:"status"`
 	StripeAccountID  sql.NullString `json:"stripe_account_id"`
-
-	// Amount
-	Amount   float64 `json:"amount"`
-	Currency string  `json:"currency"`
-
-	// Status
-	Status string `json:"status"`
-
-	// Failure info
-	FailureReason sql.NullString `json:"failure_reason"`
-
-	// Timestamps
-	ProcessedAt sql.NullTime `json:"processed_at"`
-
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	StripeTransferID sql.NullString `json:"stripe_transfer_id"`
+	FailureReason    sql.NullString `json:"failure_reason"`
+	Amount           float64        `json:"amount"`
+	ID               int64          `json:"id"`
+	PaymentID        int64          `json:"payment_id"`
+	SellerID         int64          `json:"seller_id"`
+	OrderID          int64          `json:"order_id"`
 }
 
 // Payment status constants
@@ -80,7 +52,7 @@ const (
 	StatusProcessing        = "processing"
 	StatusSucceeded         = "succeeded"
 	StatusFailed            = "failed"
-	StatusCancelled         = "cancelled"
+	StatusCancelled         = "canceled"
 	StatusRefunded          = "refunded"
 	StatusPartiallyRefunded = "partially_refunded"
 )

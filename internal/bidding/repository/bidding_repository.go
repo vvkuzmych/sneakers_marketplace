@@ -98,7 +98,7 @@ func (r *BiddingRepository) GetUserBids(ctx context.Context, userID int64, statu
 
 	// Count total
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, args[:len(args)]...).Scan(&total)
+	err := r.db.QueryRow(ctx, countQuery, args[:]...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count bids: %w", err)
 	}
@@ -160,7 +160,7 @@ func (r *BiddingRepository) GetProductBids(ctx context.Context, productID, sizeI
 
 	// Count total
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, args[:len(args)]...).Scan(&total)
+	err := r.db.QueryRow(ctx, countQuery, args[:]...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count bids: %w", err)
 	}
@@ -339,7 +339,7 @@ func (r *BiddingRepository) GetUserAsks(ctx context.Context, userID int64, statu
 
 	// Count total
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, args[:len(args)]...).Scan(&total)
+	err := r.db.QueryRow(ctx, countQuery, args[:]...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count asks: %w", err)
 	}
@@ -401,7 +401,7 @@ func (r *BiddingRepository) GetProductAsks(ctx context.Context, productID, sizeI
 
 	// Count total
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, args[:len(args)]...).Scan(&total)
+	err := r.db.QueryRow(ctx, countQuery, args[:]...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count asks: %w", err)
 	}
@@ -593,7 +593,7 @@ func (r *BiddingRepository) GetUserMatches(ctx context.Context, userID int64, as
 
 	// Count total
 	var total int64
-	err := r.db.QueryRow(ctx, countQuery, args[:len(args)]...).Scan(&total)
+	err := r.db.QueryRow(ctx, countQuery, args[:]...).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count matches: %w", err)
 	}

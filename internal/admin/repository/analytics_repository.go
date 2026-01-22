@@ -296,7 +296,7 @@ func (r *AdminRepository) CancelOrder(ctx context.Context, orderID int64, reason
 	}
 
 	if result.RowsAffected() == 0 {
-		return fmt.Errorf("order not found or cannot be cancelled")
+		return fmt.Errorf("order not found or cannot be canceled")
 	}
 
 	// Add status history

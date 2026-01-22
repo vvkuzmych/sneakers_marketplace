@@ -270,9 +270,9 @@ func (s *OrderService) CancelOrder(ctx context.Context, orderID, userID int64, r
 		return nil, fmt.Errorf("unauthorized: not a party to this order")
 	}
 
-	// Check if order can be cancelled
+	// Check if order can be canceled
 	if !order.CanBeCancelled() {
-		return nil, fmt.Errorf("order cannot be cancelled in current status: %s", order.Status)
+		return nil, fmt.Errorf("order cannot be canceled in current status: %s", order.Status)
 	}
 
 	// Validate reason

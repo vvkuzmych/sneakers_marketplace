@@ -13,8 +13,8 @@ import (
 type RedisConfig struct {
 	URL             string
 	Host            string
-	Port            int
 	Password        string
+	Port            int
 	DB              int
 	MaxRetries      int
 	PoolSize        int

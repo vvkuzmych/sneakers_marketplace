@@ -153,8 +153,16 @@ func (h *BiddingHandler) PlaceAsk(c *gin.Context) {
 // @Success 200 {object} biddingPb.GetMarketPriceResponse
 // @Router /api/v1/market/{product_id}/{size_id} [get]
 func (h *BiddingHandler) GetMarketPrice(c *gin.Context) {
-	productID, _ := strconv.ParseInt(c.Param("product_id"), 10, 64)
-	sizeID, _ := strconv.ParseInt(c.Param("size_id"), 10, 64)
+	productID, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product_id"})
+		return
+	}
+	sizeID, err := strconv.ParseInt(c.Param("size_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size_id"})
+		return
+	}
 
 	resp, err := h.client.GetMarketPrice(c.Request.Context(), &biddingPb.GetMarketPriceRequest{
 		ProductId: productID,
@@ -177,8 +185,22 @@ func (h *BiddingHandler) GetMarketPrice(c *gin.Context) {
 // @Success 200 {object} biddingPb.GetProductBidsResponse
 // @Router /api/v1/bids/product/{product_id} [get]
 func (h *BiddingHandler) GetProductBids(c *gin.Context) {
-	productID, _ := strconv.ParseInt(c.Param("product_id"), 10, 64)
-	sizeID, _ := strconv.ParseInt(c.Query("size_id"), 10, 64)
+	productID, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
+
+	sizeIDStr := c.Query("size_id")
+	var sizeID int64
+	if sizeIDStr != "" {
+		var err error
+		sizeID, err = strconv.ParseInt(sizeIDStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size id"})
+			return
+		}
+	}
 
 	resp, err := h.client.GetProductBids(c.Request.Context(), &biddingPb.GetProductBidsRequest{
 		ProductId: productID,
@@ -201,8 +223,22 @@ func (h *BiddingHandler) GetProductBids(c *gin.Context) {
 // @Success 200 {object} biddingPb.GetProductAsksResponse
 // @Router /api/v1/asks/product/{product_id} [get]
 func (h *BiddingHandler) GetProductAsks(c *gin.Context) {
-	productID, _ := strconv.ParseInt(c.Param("product_id"), 10, 64)
-	sizeID, _ := strconv.ParseInt(c.Query("size_id"), 10, 64)
+	productID, err := strconv.ParseInt(c.Param("product_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
+
+	sizeIDStr := c.Query("size_id")
+	var sizeID int64
+	if sizeIDStr != "" {
+		var err error
+		sizeID, err = strconv.ParseInt(sizeIDStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid size id"})
+			return
+		}
+	}
 
 	resp, err := h.client.GetProductAsks(c.Request.Context(), &biddingPb.GetProductAsksRequest{
 		ProductId: productID,
