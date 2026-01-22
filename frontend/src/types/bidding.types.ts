@@ -47,16 +47,16 @@ export interface MarketPrice {
 }
 
 export interface PlaceBidRequest {
-  productId: string;
-  sizeId: string;
+  productId: number;
+  sizeId: number;
   price: number;
   quantity: number;
   expiresInHours?: number;
 }
 
 export interface PlaceAskRequest {
-  productId: string;
-  sizeId: string;
+  productId: number;
+  sizeId: number;
   price: number;
   quantity: number;
   expiresInHours?: number;

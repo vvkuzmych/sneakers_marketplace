@@ -42,7 +42,7 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			// Disconnect existing client if same user
 			if existingClient, ok := h.clients[client.UserID]; ok {
-				close(existingClient.Send)
+				existingClient.SafeClose()
 				delete(h.clients, client.UserID)
 			}
 			h.clients[client.UserID] = client
@@ -53,7 +53,7 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			if _, ok := h.clients[client.UserID]; ok {
 				delete(h.clients, client.UserID)
-				close(client.Send)
+				client.SafeClose()
 				log.Printf("Client disconnected: UserID=%d, Total=%d", client.UserID, len(h.clients))
 			}
 			h.mu.Unlock()
@@ -66,7 +66,7 @@ func (h *Hub) Run() {
 				case client.Send <- message:
 				default:
 					// Client's send buffer is full, disconnect
-					close(client.Send)
+					client.SafeClose()
 					delete(h.clients, userID)
 					log.Printf("Client send buffer full, disconnecting: UserID=%d", userID)
 				}

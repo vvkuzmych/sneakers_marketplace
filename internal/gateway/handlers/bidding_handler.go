@@ -40,6 +40,11 @@ func (h *BiddingHandler) PlaceBid(c *gin.Context) {
 		return
 	}
 
+	// DEBUG: Log received data (visible in response headers)
+	c.Writer.Header().Set("X-Debug-ProductID", strconv.FormatInt(body.ProductID, 10))
+	c.Writer.Header().Set("X-Debug-SizeID", strconv.FormatInt(body.SizeID, 10))
+	println("🔍 API Gateway PlaceBid: productId=", body.ProductID, "sizeId=", body.SizeID, "price=", body.Price)
+
 	// Extract user_id from JWT claims (set by AuthMiddleware)
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -103,6 +108,9 @@ func (h *BiddingHandler) PlaceAsk(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	// DEBUG: Log received data
+	println("🔍 API Gateway PlaceAsk: productId=", body.ProductID, "sizeId=", body.SizeID, "price=", body.Price)
 
 	// Extract user_id from JWT claims (set by AuthMiddleware)
 	userID, exists := c.Get("user_id")

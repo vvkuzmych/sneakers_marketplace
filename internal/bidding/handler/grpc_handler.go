@@ -26,6 +26,9 @@ func NewBiddingHandler(biddingService *service.BiddingService) *BiddingHandler {
 
 // PlaceBid handles bid placement
 func (h *BiddingHandler) PlaceBid(ctx context.Context, req *pb.PlaceBidRequest) (*pb.PlaceBidResponse, error) {
+	// DEBUG: Log received request
+	println("🔍 DEBUG PlaceBid: userId=", req.UserId, "productId=", req.ProductId, "sizeId=", req.SizeId, "price=", req.Price)
+
 	if req.UserId == 0 || req.ProductId == 0 || req.SizeId == 0 || req.Price <= 0 {
 		return &pb.PlaceBidResponse{
 			Error: "user_id, product_id, size_id, and price are required",
@@ -163,6 +166,9 @@ func (h *BiddingHandler) CancelBid(ctx context.Context, req *pb.CancelBidRequest
 
 // PlaceAsk handles ask placement
 func (h *BiddingHandler) PlaceAsk(ctx context.Context, req *pb.PlaceAskRequest) (*pb.PlaceAskResponse, error) {
+	// DEBUG: Log received request
+	println("🔍 DEBUG PlaceAsk: userId=", req.UserId, "productId=", req.ProductId, "sizeId=", req.SizeId, "price=", req.Price)
+
 	if req.UserId == 0 || req.ProductId == 0 || req.SizeId == 0 || req.Price <= 0 {
 		return &pb.PlaceAskResponse{
 			Error: "user_id, product_id, size_id, and price are required",

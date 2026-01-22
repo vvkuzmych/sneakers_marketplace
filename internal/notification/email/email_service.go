@@ -16,12 +16,12 @@ type EmailService struct {
 func NewEmailService() *EmailService {
 	host := os.Getenv("SMTP_HOST")
 	if host == "" {
-		host = "localhost" // Mailhog default
+		host = "localhost" // Mailhog default (DEV)
 	}
 
 	port := os.Getenv("SMTP_PORT")
 	if port == "" {
-		port = "1025" // Mailhog default
+		port = "1025" // Mailhog default (DEV)
 	}
 
 	from := os.Getenv("SMTP_FROM")
@@ -29,11 +29,24 @@ func NewEmailService() *EmailService {
 		from = "noreply@sneakersmarketplace.com"
 	}
 
+	// SMTP Authentication for Production
+	var auth smtp.Auth
+	username := os.Getenv("SMTP_USER")
+	password := os.Getenv("SMTP_PASS")
+
+	if username != "" && password != "" {
+		// Production: Use SMTP authentication (Gmail, SendGrid, AWS SES, etc.)
+		auth = smtp.PlainAuth("", username, password, host)
+	} else {
+		// Development: Mailhog doesn't require authentication
+		auth = nil
+	}
+
 	return &EmailService{
 		host: host,
 		port: port,
 		from: from,
-		auth: nil, // Mailhog doesn't require auth
+		auth: auth,
 	}
 }
 

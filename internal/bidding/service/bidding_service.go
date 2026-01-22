@@ -3,21 +3,25 @@ package service
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/model"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/repository"
+	notificationPb "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/notification"
 )
 
 // BiddingService handles business logic for bidding
 type BiddingService struct {
-	repo *repository.BiddingRepository
+	repo               *repository.BiddingRepository
+	notificationClient notificationPb.NotificationServiceClient
 }
 
 // NewBiddingService creates a new bidding service
-func NewBiddingService(repo *repository.BiddingRepository) *BiddingService {
+func NewBiddingService(repo *repository.BiddingRepository, notificationClient notificationPb.NotificationServiceClient) *BiddingService {
 	return &BiddingService{
-		repo: repo,
+		repo:               repo,
+		notificationClient: notificationClient,
 	}
 }
 
@@ -179,6 +183,25 @@ func (s *BiddingService) createMatch(ctx context.Context, bid *model.Bid, ask *m
 	// Commit transaction
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	// Send notification asynchronously (don't block the response)
+	if s.notificationClient != nil {
+		go func() {
+			notifyCtx := context.Background()
+			_, err := s.notificationClient.NotifyMatchCreated(notifyCtx, &notificationPb.NotifyMatchCreatedRequest{
+				MatchId:     match.ID,
+				BuyerId:     match.BuyerID,
+				SellerId:    match.SellerID,
+				ProductId:   match.ProductID,
+				ProductName: "Product", // TODO: Get product name from Product Service
+				Size:        "10",      // TODO: Get size from Size table
+				Price:       match.Price,
+			})
+			if err != nil {
+				log.Printf("Failed to send match notification: %v", err)
+			}
+		}()
 	}
 
 	return match, nil

@@ -3,6 +3,7 @@ package websocket
 import (
 	"encoding/json"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -24,11 +25,12 @@ const (
 
 // Client represents a WebSocket client connection
 type Client struct {
-	Hub    *Hub
-	Conn   *websocket.Conn
-	Send   chan []byte
-	Email  string
-	UserID int64
+	Hub       *Hub
+	Conn      *websocket.Conn
+	Send      chan []byte
+	Email     string
+	UserID    int64
+	closeOnce sync.Once // Ensure channel is closed only once
 }
 
 // Message represents a WebSocket message
@@ -45,6 +47,13 @@ type NotificationData struct {
 	Link      string `json:"link,omitempty"`
 	Timestamp string `json:"timestamp"`
 	ID        int64  `json:"id"`
+}
+
+// SafeClose safely closes the Send channel only once
+func (c *Client) SafeClose() {
+	c.closeOnce.Do(func() {
+		close(c.Send)
+	})
 }
 
 // readPump pumps messages from the WebSocket connection to the hub

@@ -27,6 +27,22 @@ export default function BiddingPage() {
   const { productId } = useParams<{ productId: string }>();
   const token = useAppSelector((state) => state.auth.accessToken);
   
+  // Validate productId
+  const productIdNum = productId ? parseInt(productId, 10) : NaN;
+  if (!productId || isNaN(productIdNum)) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h2 className="text-red-800 font-semibold">❌ Invalid Product ID</h2>
+          <p className="text-red-600 mt-2">
+            The product ID in the URL is invalid. Please go back to the{' '}
+            <a href="/products" className="underline">products page</a> and select a product.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
   const { data: product, isLoading: productLoading } = useGetProductQuery(productId!);
   const { data: initialMarketPrice } = useGetMarketPriceQuery(
     { productId: productId!, sizeId: '1' },
@@ -187,10 +203,17 @@ export default function BiddingPage() {
     e.preventDefault();
     if (!productId || !bidPrice) return;
 
+    console.warn('🔍 DEBUG: Placing BID with:', {
+      productId: productIdNum,
+      productIdRaw: productId,
+      sizeId: 1,
+      price: parseFloat(bidPrice),
+    });
+
     try {
       const result = await placeBid({
-        productId: productId!,
-        sizeId: '1', // TODO: Add size selector
+        productId: productIdNum,
+        sizeId: 1, // TODO: Add size selector
         price: parseFloat(bidPrice),
         quantity: 1,
       }).unwrap();
@@ -216,10 +239,17 @@ export default function BiddingPage() {
     e.preventDefault();
     if (!productId || !askPrice) return;
 
+    console.warn('🔍 DEBUG: Placing ASK with:', {
+      productId: productIdNum,
+      productIdRaw: productId,
+      sizeId: 1,
+      price: parseFloat(askPrice),
+    });
+
     try {
       const result = await placeAsk({
-        productId: productId!,
-        sizeId: '1',
+        productId: productIdNum,
+        sizeId: 1,
         price: parseFloat(askPrice),
         quantity: 1,
       }).unwrap();
