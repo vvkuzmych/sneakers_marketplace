@@ -3,15 +3,18 @@ package router
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgxpool"
 
+	feeRepository "github.com/vvkuzmych/sneakers_marketplace/internal/fees/repository"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/clients"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/handlers"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/middleware"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/websocket"
+	"github.com/vvkuzmych/sneakers_marketplace/pkg/logger"
 )
 
 // SetupRouter configures all routes
-func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub) *gin.Engine {
+func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub, db *pgxpool.Pool, log *logger.Logger) *gin.Engine {
 	router := gin.Default()
 
 	// CORS middleware
@@ -38,6 +41,10 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub) *gin.En
 	biddingHandler := handlers.NewBiddingHandler(grpcClients.BiddingClient)
 	orderHandler := handlers.NewOrderHandler(grpcClients.OrderClient)
 	paymentHandler := handlers.NewPaymentHandler(grpcClients.PaymentClient)
+
+	// Initialize fee handler (requires database connection)
+	feeRepo := feeRepository.NewFeeRepository(db)
+	feeHandler := handlers.NewFeeHandler(feeRepo, log)
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")
@@ -94,6 +101,23 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub) *gin.En
 		{
 			payments.POST("/intent", paymentHandler.CreatePaymentIntent)
 			payments.GET("/:id", paymentHandler.GetPayment)
+		}
+
+		// Fee routes (public for calculation, protected for revenue data)
+		fees := v1.Group("/fees")
+		{
+			// Public endpoints
+			fees.GET("/calculate", feeHandler.CalculateFees)       // Calculate fees for UI
+			fees.GET("/config/:vertical", feeHandler.GetFeeConfig) // Get fee config
+			fees.GET("/configs", feeHandler.GetAllFeeConfigs)      // Get all configs
+
+			// Protected endpoints
+			feesProtected := fees.Group("")
+			feesProtected.Use(middleware.AuthMiddleware())
+			{
+				feesProtected.GET("/revenue", feeHandler.GetRevenue)                      // Admin: Get revenue data
+				feesProtected.GET("/transaction/:match_id", feeHandler.GetTransactionFee) // Get transaction fee
+			}
 		}
 	}
 

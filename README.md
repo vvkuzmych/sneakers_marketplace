@@ -128,6 +128,64 @@ migrate -version    # 4.x+
 
 ## 🚀 Quick Start
 
+> **New!** We now have a comprehensive Makefile with 60+ commands! See [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md) for full documentation.
+
+### 🎯 Super Quick Start (3 commands!)
+
+```bash
+# 1. Install all dependencies (Go, npm, tools)
+make install
+
+# 2. Setup database (create, migrate, seed with test data)
+make db-setup
+
+# 3. Start everything (backend + frontend + mailhog)
+make dev
+```
+
+**That's it!** Your application is now running:
+- 🌐 Frontend: http://localhost:5173
+- 🔌 API Gateway: http://localhost:8080
+- 📧 Mailhog: http://localhost:8025
+
+**Test users (password: `password123`):**
+- john@example.com
+- jane@example.com
+- test@example.com
+
+### 📋 Common Makefile Commands
+
+```bash
+make help              # Show all available commands
+make dev               # Start all services (recommended!)
+make stop              # Stop all services
+make restart           # Rebuild & restart backend
+make status            # Check running services
+make logs              # Show recent logs
+make logs-follow       # Follow logs in real-time
+
+make build             # Build all backend services
+make test              # Run all tests with coverage
+make lint              # Run all linters
+make lint-fix          # Auto-fix linting issues
+
+make db-reset          # Drop + recreate database
+make db-backup         # Backup database
+make proto             # Generate gRPC code from .proto files
+
+make version           # Show Go, Node, npm versions
+make health            # API health check
+```
+
+**Full documentation:** [MAKEFILE_GUIDE.md](MAKEFILE_GUIDE.md)
+
+---
+
+### 🔧 Manual Setup (Alternative)
+
+<details>
+<summary>Click to expand manual setup instructions</summary>
+
 ### 1. Clone & Setup
 
 ```bash
@@ -151,75 +209,57 @@ docker-compose up -d
 docker-compose ps
 
 # Check PostgreSQL
-psql postgres://postgres:postgres@localhost:5435/sneakers_marketplace -c "\dt"
+psql postgres://postgres:postgres@localhost:5432/sneakers_marketplace -c "\dt"
 ```
 
 ### 3. Run Migrations
 
 ```bash
-export DATABASE_URL="postgres://postgres:postgres@localhost:5435/sneakers_marketplace?sslmode=disable"
+export DATABASE_URL="postgres://postgres:postgres@localhost:5432/sneakers_marketplace?sslmode=disable"
 migrate -path migrations -database "${DATABASE_URL}" up
 
 # Verify tables
 psql ${DATABASE_URL} -c "\dt"
-# Should show: users, addresses, sessions, products, product_images, 
-#              sizes, inventory_transactions, bids, asks, matches
 ```
 
 ### 4. Build Services
 
 ```bash
-# Build all services
-make build
-
-# Or build individually
 go build -o bin/user-service ./cmd/user-service
 go build -o bin/product-service ./cmd/product-service
 go build -o bin/bidding-service ./cmd/bidding-service
+go build -o bin/api-gateway ./cmd/api-gateway
+go build -o bin/notification-service ./cmd/notification-service
 ```
 
 ### 5. Run Services
 
-**Option A: Manually (3 terminals)**
-
-```bash
-# Terminal 1 - User Service
-export $(cat .env | grep -v '^#' | xargs)
-./bin/user-service
-
-# Terminal 2 - Product Service
-export $(cat .env | grep -v '^#' | xargs)
-./bin/product-service
-
-# Terminal 3 - Bidding Service
-export $(cat .env | grep -v '^#' | xargs)
-./bin/bidding-service
-```
-
-**Option B: Background**
-
 ```bash
 # Start all services in background
-./scripts/start_all_services.sh
+export $(cat .env | grep -v '^#' | xargs)
+nohup ./bin/user-service > /tmp/user-service.log 2>&1 &
+nohup ./bin/product-service > /tmp/product-service.log 2>&1 &
+nohup ./bin/bidding-service > /tmp/bidding-service.log 2>&1 &
+nohup ./bin/notification-service > /tmp/notification-service.log 2>&1 &
+nohup ./bin/api-gateway > /tmp/api-gateway.log 2>&1 &
 
-# View logs
-tail -f logs/*.log
-
-# Stop all
-./scripts/stop_all_services.sh
+# Frontend
+cd frontend && npm run dev
 ```
 
 ### 6. Test Services
 
 ```bash
-# Test each service
-./scripts/test_user_service.sh
-./scripts/test_product_service.sh
-./scripts/test_bidding_service.sh
+# Test API Gateway
+curl http://localhost:8080/health
 
-# Run full demo
-./scripts/demo_all_services.sh
+# Test login
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
 ```
+
+</details>
 
 ---
 
