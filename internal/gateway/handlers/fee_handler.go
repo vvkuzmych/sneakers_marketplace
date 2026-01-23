@@ -17,16 +17,19 @@ type FeeHandler struct {
 	log     *logger.Logger
 }
 
-func NewFeeHandler(feeRepo *repository.FeeRepository, log *logger.Logger) *FeeHandler {
-	feeService := service.NewFeeService(feeRepo, log)
+// NewFeeHandler creates a new fee handler with optional subscription provider
+// If subscriptionProvider is nil, uses default fees (Free tier: 1%)
+func NewFeeHandler(feeRepo *repository.FeeRepository, log *logger.Logger, subscriptionProvider service.SubscriptionFeeProvider) *FeeHandler {
+	feeService := service.NewFeeService(feeRepo, log, subscriptionProvider)
 	return &FeeHandler{
 		service: feeService,
 		log:     log,
 	}
 }
 
-// CalculateFees calculates fee breakdown for a given price
-// GET /api/v1/fees/calculate?vertical=sneakers&price=200&include_auth=true
+// CalculateFees calculates fee breakdown for a given price based on seller's subscription
+// GET /api/v1/fees/calculate?vertical=sneakers&price=200&seller_user_id=123
+// If seller_user_id is not provided, uses default Free tier fees (1%)
 func (h *FeeHandler) CalculateFees(c *gin.Context) {
 	vertical := c.Query("vertical")
 	if vertical == "" {
@@ -45,10 +48,24 @@ func (h *FeeHandler) CalculateFees(c *gin.Context) {
 		return
 	}
 
-	includeAuth := c.Query("include_auth") == "true"
+	// Get seller_user_id (optional - if not provided, use 0 which triggers default fees)
+	sellerUserIDStr := c.Query("seller_user_id")
+	var sellerUserID int64
+	if sellerUserIDStr != "" {
+		sellerUserID, err = strconv.ParseInt(sellerUserIDStr, 10, 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid seller_user_id format"})
+			return
+		}
+	}
+
+	// If sellerUserID is 0, use special value to indicate "use default fees"
+	if sellerUserID == 0 {
+		sellerUserID = -1 // Special value handled by fee service
+	}
 
 	// Calculate fees
-	breakdown, err := h.service.CalculateFees(c.Request.Context(), vertical, price, includeAuth)
+	breakdown, err := h.service.CalculateFees(c.Request.Context(), vertical, price, sellerUserID)
 	if err != nil {
 		h.log.Errorf("Failed to calculate fees: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to calculate fees"})

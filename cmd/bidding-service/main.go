@@ -17,6 +17,8 @@ import (
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/service"
 	feeRepository "github.com/vvkuzmych/sneakers_marketplace/internal/fees/repository"
 	feeService "github.com/vvkuzmych/sneakers_marketplace/internal/fees/service"
+	subscriptionRepository "github.com/vvkuzmych/sneakers_marketplace/internal/subscription/repository"
+	subscriptionService "github.com/vvkuzmych/sneakers_marketplace/internal/subscription/service"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/config"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/database"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/logger"
@@ -52,10 +54,12 @@ func main() {
 	// Initialize repository
 	biddingRepo := repository.NewBiddingRepository(db)
 
-	// Initialize Fee Service
+	// Initialize Fee Service with subscription-based pricing
 	feeRepo := feeRepository.NewFeeRepository(db)
-	feeServ := feeService.NewFeeService(feeRepo, log)
-	log.Info("Fee Service initialized")
+	subscriptionRepo := subscriptionRepository.NewPostgresSubscriptionRepository(db)
+	subscriptionFeeProvider := subscriptionService.NewFeeProvider(subscriptionRepo)
+	feeServ := feeService.NewFeeService(feeRepo, log, subscriptionFeeProvider)
+	log.Info("Fee Service initialized with subscription-based pricing")
 
 	// Connect to Notification Service
 	notificationConn, err := grpc.Dial(

@@ -11,20 +11,29 @@ import (
 )
 
 type FeeService struct {
-	repo *repository.FeeRepository
-	log  *logger.Logger
+	repo                 *repository.FeeRepository
+	log                  *logger.Logger
+	subscriptionProvider SubscriptionFeeProvider
 }
 
-func NewFeeService(repo *repository.FeeRepository, log *logger.Logger) *FeeService {
+func NewFeeService(repo *repository.FeeRepository, log *logger.Logger, subscriptionProvider SubscriptionFeeProvider) *FeeService {
+	// If no subscription provider, use default
+	if subscriptionProvider == nil {
+		subscriptionProvider = NewDefaultFeeProvider()
+	}
+
 	return &FeeService{
-		repo: repo,
-		log:  log,
+		repo:                 repo,
+		log:                  log,
+		subscriptionProvider: subscriptionProvider,
 	}
 }
 
-// CalculateFees calculates all fees for a transaction
+// CalculateFees calculates all fees for a transaction with subscription-based pricing
 // Returns detailed fee breakdown for buyer and seller
-func (s *FeeService) CalculateFees(ctx context.Context, vertical string, salePrice float64, includeAuth bool) (*model.FeeBreakdown, error) {
+// sellerUserID is used to determine seller's subscription tier and apply appropriate fees
+// Use sellerUserID = -1 for preview/default fees (Free tier: 1%)
+func (s *FeeService) CalculateFees(ctx context.Context, vertical string, salePrice float64, sellerUserID int64) (*model.FeeBreakdown, error) {
 	// Validate inputs
 	if salePrice <= 0 {
 		return nil, fmt.Errorf("sale price must be positive, got: %.2f", salePrice)
@@ -34,36 +43,60 @@ func (s *FeeService) CalculateFees(ctx context.Context, vertical string, salePri
 		vertical = "sneakers" // default
 	}
 
-	// Get fee config for vertical
-	config, err := s.repo.GetFeeConfig(ctx, vertical)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get fee config for vertical %s: %w", vertical, err)
+	// Handle special case: -1 means use default fees (for preview)
+	var sellerFeePercent, buyerFeePercent float64
+	if sellerUserID == -1 {
+		// Default Free tier fees
+		sellerFeePercent = 1.0
+		buyerFeePercent = 1.0
+		s.log.Infof("Using default fees (preview mode): seller_fee=%.2f%%, buyer_fee=%.2f%%",
+			sellerFeePercent, buyerFeePercent)
+	} else if sellerUserID <= 0 {
+		return nil, fmt.Errorf("sellerUserID must be positive or -1 for default fees, got: %d", sellerUserID)
+	} else {
+		// Get seller's subscription fee percentages
+		var err error
+		sellerFeePercent, buyerFeePercent, err = s.subscriptionProvider.GetUserFeePercentages(ctx, sellerUserID)
+		if err != nil {
+			s.log.Warnf("Failed to get subscription fees for seller %d, using defaults: %v", sellerUserID, err)
+			// Fallback to default fees
+			sellerFeePercent = 1.0
+			buyerFeePercent = 1.0
+		}
+
+		s.log.Infof("Calculating fees for seller %d: seller_fee=%.2f%%, buyer_fee=%.2f%%",
+			sellerUserID, sellerFeePercent, buyerFeePercent)
 	}
 
 	// Create breakdown
 	breakdown := model.NewFeeBreakdown(salePrice)
 
-	// NEW MODEL: Buyer pays transaction fee, Seller receives full price
-	transactionFee := config.CalculateTransactionFee(salePrice)
+	// SUBSCRIPTION-BASED MODEL:
+	// - Seller pays platform fee based on their subscription tier (Free: 1%, Pro: 0.75%, Elite: 0.5%)
+	// - Buyer pays fixed processing fee (1%)
 
-	// Buyer fees (transaction fee instead of seller)
-	breakdown.BuyerProcessingFee = s.roundToTwoDecimals(transactionFee)
-	breakdown.BuyerShippingFee = 0.0 // No shipping fees
-
-	// Seller fees (zero - seller receives full price)
-	breakdown.SellerTransactionFee = 0.0
+	// Seller fees (based on subscription)
+	sellerPlatformFee := s.roundToTwoDecimals((salePrice * sellerFeePercent) / 100)
+	breakdown.SellerTransactionFee = sellerPlatformFee
 	breakdown.SellerAuthFee = 0.0
 	breakdown.SellerShippingCost = 0.0
+
+	// Buyer fees (fixed processing)
+	buyerProcessingFee := s.roundToTwoDecimals((salePrice * buyerFeePercent) / 100)
+	breakdown.BuyerProcessingFee = buyerProcessingFee
+	breakdown.BuyerShippingFee = 0.0
 
 	// Calculate totals
 	breakdown.CalculateTotals()
 
-	s.log.Infof("Fee calculation for %s @ $%.2f: Platform Revenue = $%.2f (Buyer: $%.2f, Seller pays: $%.2f)",
+	s.log.Infof("Fee calculation for %s @ $%.2f: Seller pays $%.2f (%.2f%%), Buyer pays $%.2f (%.2f%%), Platform Revenue = $%.2f",
 		vertical,
 		salePrice,
+		breakdown.SellerTransactionFee,
+		sellerFeePercent,
+		breakdown.BuyerProcessingFee,
+		buyerFeePercent,
 		breakdown.PlatformRevenue,
-		breakdown.BuyerTotal,
-		breakdown.SellerTransactionFee+breakdown.SellerAuthFee+breakdown.SellerShippingCost,
 	)
 
 	return breakdown, nil

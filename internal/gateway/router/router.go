@@ -10,6 +10,8 @@ import (
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/handlers"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/middleware"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/websocket"
+	subscriptionRepository "github.com/vvkuzmych/sneakers_marketplace/internal/subscription/repository"
+	subscriptionService "github.com/vvkuzmych/sneakers_marketplace/internal/subscription/service"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/logger"
 )
 
@@ -42,9 +44,11 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub, db *pgx
 	orderHandler := handlers.NewOrderHandler(grpcClients.OrderClient)
 	paymentHandler := handlers.NewPaymentHandler(grpcClients.PaymentClient)
 
-	// Initialize fee handler (requires database connection)
+	// Initialize fee handler with subscription-based pricing
 	feeRepo := feeRepository.NewFeeRepository(db)
-	feeHandler := handlers.NewFeeHandler(feeRepo, log)
+	subscriptionRepo := subscriptionRepository.NewPostgresSubscriptionRepository(db)
+	subscriptionFeeProvider := subscriptionService.NewFeeProvider(subscriptionRepo)
+	feeHandler := handlers.NewFeeHandler(feeRepo, log, subscriptionFeeProvider)
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")
