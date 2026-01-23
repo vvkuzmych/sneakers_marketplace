@@ -12,10 +12,31 @@ import (
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/clients"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/router"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/websocket"
+	"github.com/vvkuzmych/sneakers_marketplace/pkg/database"
+	"github.com/vvkuzmych/sneakers_marketplace/pkg/logger"
 )
 
 func main() {
 	log.Println("🚀 Starting API Gateway...")
+
+	// Initialize logger
+	logger := logger.New(logger.Config{
+		Level:  "debug",
+		Format: "console",
+		Output: os.Stdout,
+	})
+
+	// Initialize database connection for fee tracking
+	ctx := context.Background()
+	databaseURL := getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/sneakers_marketplace?sslmode=disable")
+	db, err := database.NewPostgresPool(ctx, database.PostgresConfig{
+		URL: databaseURL,
+	}, logger)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+	log.Println("✅ Database connected")
 
 	// Get service addresses from environment
 	userAddr := getEnv("USER_SERVICE_ADDR", "localhost:50051")
@@ -38,7 +59,7 @@ func main() {
 	log.Println("✅ WebSocket Hub started")
 
 	// Setup router
-	r := router.SetupRouter(grpcClients, wsHub)
+	r := router.SetupRouter(grpcClients, wsHub, db, logger)
 
 	// Get HTTP port
 	port := getEnv("HTTP_PORT", "8080")

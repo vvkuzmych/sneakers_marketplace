@@ -5,6 +5,7 @@ import { useGetProductQuery } from '../products/productsApi';
 import { useGetMarketPriceQuery, usePlaceBidMutation, usePlaceAskMutation, useGetBidsQuery, useGetAsksQuery } from './biddingApi';
 import { websocketService, WS_MESSAGE_TYPES } from '../../services/websocket';
 import ActivityFeed from './ActivityFeed';
+import { FeeBreakdown } from '../../components/fees/FeeBreakdown';
 import styles from './BiddingPage.module.css';
 
 interface MarketUpdate {
@@ -368,6 +369,19 @@ export default function BiddingPage() {
                   : 'Enter your maximum buy price'}
               </p>
             </div>
+            
+            {/* Fee Breakdown for Buyer */}
+            {bidPrice && parseFloat(bidPrice) > 0 && (
+              <div className="mb-4">
+                <FeeBreakdown
+                  vertical="sneakers"
+                  price={parseFloat(bidPrice)}
+                  includeAuth={true}
+                  role="buyer"
+                />
+              </div>
+            )}
+            
             <button type="submit" className={`${styles.button} ${styles.buttonBuy}`}>
               Place BID
             </button>
@@ -399,6 +413,19 @@ export default function BiddingPage() {
                   : 'Enter your minimum sell price'}
               </p>
             </div>
+            
+            {/* Fee Breakdown for Seller */}
+            {askPrice && parseFloat(askPrice) > 0 && (
+              <div className="mb-4">
+                <FeeBreakdown
+                  vertical="sneakers"
+                  price={parseFloat(askPrice)}
+                  includeAuth={true}
+                  role="seller"
+                />
+              </div>
+            )}
+            
             <button type="submit" className={`${styles.button} ${styles.buttonSell}`}>
               Place ASK
             </button>

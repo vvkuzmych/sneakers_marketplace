@@ -8,6 +8,7 @@ import (
 
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/model"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/repository"
+	feeService "github.com/vvkuzmych/sneakers_marketplace/internal/fees/service"
 	notificationPb "github.com/vvkuzmych/sneakers_marketplace/pkg/proto/notification"
 )
 
@@ -15,13 +16,15 @@ import (
 type BiddingService struct {
 	repo               *repository.BiddingRepository
 	notificationClient notificationPb.NotificationServiceClient
+	feeService         *feeService.FeeService
 }
 
 // NewBiddingService creates a new bidding service
-func NewBiddingService(repo *repository.BiddingRepository, notificationClient notificationPb.NotificationServiceClient) *BiddingService {
+func NewBiddingService(repo *repository.BiddingRepository, notificationClient notificationPb.NotificationServiceClient, feeService *feeService.FeeService) *BiddingService {
 	return &BiddingService{
 		repo:               repo,
 		notificationClient: notificationClient,
+		feeService:         feeService,
 	}
 }
 
@@ -183,6 +186,23 @@ func (s *BiddingService) createMatch(ctx context.Context, bid *model.Bid, ask *m
 	// Commit transaction
 	if err := tx.Commit(ctx); err != nil {
 		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	// Calculate and record fees (after transaction committed)
+	if s.feeService != nil {
+		// TODO: Get vertical from product (for now assume sneakers)
+		vertical := "sneakers"
+		includeAuth := true // TODO: Make this configurable
+
+		feeBreakdown, err := s.feeService.CalculateFees(ctx, vertical, matchPrice, includeAuth)
+		if err != nil {
+			log.Printf("Failed to calculate fees for match %d: %v", match.ID, err)
+		} else {
+			// Record transaction fee
+			if err := s.feeService.RecordTransactionFee(ctx, match.ID, nil, feeBreakdown, vertical); err != nil {
+				log.Printf("Failed to record transaction fee for match %d: %v", match.ID, err)
+			}
+		}
 	}
 
 	// Send notification asynchronously (don't block the response)

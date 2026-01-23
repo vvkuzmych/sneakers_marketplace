@@ -15,6 +15,8 @@ import (
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/handler"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/repository"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/bidding/service"
+	feeRepository "github.com/vvkuzmych/sneakers_marketplace/internal/fees/repository"
+	feeService "github.com/vvkuzmych/sneakers_marketplace/internal/fees/service"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/config"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/database"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/logger"
@@ -50,6 +52,11 @@ func main() {
 	// Initialize repository
 	biddingRepo := repository.NewBiddingRepository(db)
 
+	// Initialize Fee Service
+	feeRepo := feeRepository.NewFeeRepository(db)
+	feeServ := feeService.NewFeeService(feeRepo, log)
+	log.Info("Fee Service initialized")
+
 	// Connect to Notification Service
 	notificationConn, err := grpc.Dial(
 		"localhost:50056", // Notification Service port
@@ -73,7 +80,7 @@ func main() {
 	}
 
 	// Initialize service
-	biddingService := service.NewBiddingService(biddingRepo, notificationClient)
+	biddingService := service.NewBiddingService(biddingRepo, notificationClient, feeServ)
 
 	// Initialize gRPC handler
 	biddingHandler := handler.NewBiddingHandler(biddingService)
