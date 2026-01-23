@@ -557,13 +557,15 @@ sneakers_marketplace/
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome! Please read our [**CONTRIBUTING.md**](CONTRIBUTING.md) for guidelines.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+**Quick rules:**
+- ✅ Use `git mv` for moving files (preserves Git history)
+- ✅ Follow [Conventional Commits](https://www.conventionalcommits.org/)
+- ✅ Run `make lint` and `make test` before committing
+- ✅ Keep commits small and focused
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/GIT_BEST_PRACTICES.md](docs/GIT_BEST_PRACTICES.md) for details.
 
 ---
 
