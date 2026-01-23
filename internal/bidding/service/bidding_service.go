@@ -192,9 +192,9 @@ func (s *BiddingService) createMatch(ctx context.Context, bid *model.Bid, ask *m
 	if s.feeService != nil {
 		// TODO: Get vertical from product (for now assume sneakers)
 		vertical := "sneakers"
-		includeAuth := true // TODO: Make this configurable
 
-		feeBreakdown, err := s.feeService.CalculateFees(ctx, vertical, matchPrice, includeAuth)
+		// Calculate fees based on seller's subscription tier
+		feeBreakdown, err := s.feeService.CalculateFees(ctx, vertical, matchPrice, match.SellerID)
 		if err != nil {
 			log.Printf("Failed to calculate fees for match %d: %v", match.ID, err)
 		} else {

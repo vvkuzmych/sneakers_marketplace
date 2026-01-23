@@ -29,6 +29,13 @@ export function Header() {
             
             {isAuthenticated ? (
               <>
+                <Link 
+                  to="/subscription/plans" 
+                  className="flex items-center text-purple-600 hover:text-purple-700 px-3 py-2 font-medium"
+                >
+                  <span className="mr-1">💎</span>
+                  Upgrade
+                </Link>
                 <Link to="/orders" className="text-gray-700 hover:text-blue-600 px-3 py-2">
                   Orders
                 </Link>

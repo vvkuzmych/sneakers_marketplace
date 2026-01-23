@@ -30,6 +30,7 @@ Welcome to the Sneakers Marketplace documentation!
 
 ### Phase 2: Premium Subscriptions
 - **[PHASE_2_SUBSCRIPTIONS.md](PHASE_2_SUBSCRIPTIONS.md)** - Subscription system design and implementation
+- **[DYNAMIC_FEES.md](DYNAMIC_FEES.md)** - Subscription-based dynamic fee pricing (Day 4 Complete!)
 
 ---
 

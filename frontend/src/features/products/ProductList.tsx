@@ -4,9 +4,12 @@ import { Typography } from '../../components/ui/Typography';
 import { Box } from '../../components/ui/Box';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import CurrentSubscriptionWidget from '../subscription/CurrentSubscriptionWidget';
+import { useAppSelector } from '../../app/hooks';
 
 export function ProductList() {
   const { data, isLoading, error } = useGetProductsQuery({ page: 1, pageSize: 12 });
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
   if (isLoading) {
     return (
@@ -31,6 +34,13 @@ export function ProductList() {
   return (
     <Box className="max-w-7xl mx-auto px-4" p={8}>
       <Typography variant="h1" className="mb-8">Sneakers Catalog</Typography>
+      
+      {/* Subscription Widget - Only for authenticated users */}
+      {isAuthenticated && (
+        <Box className="mb-8">
+          <CurrentSubscriptionWidget />
+        </Box>
+      )}
       
       <Box className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" gap={6}>
         {data?.products.map((product) => (
