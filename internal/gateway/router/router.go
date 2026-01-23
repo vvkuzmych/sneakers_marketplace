@@ -50,6 +50,10 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub, db *pgx
 	subscriptionFeeProvider := subscriptionService.NewFeeProvider(subscriptionRepo)
 	feeHandler := handlers.NewFeeHandler(feeRepo, log, subscriptionFeeProvider)
 
+	// Initialize subscription handler
+	subscriptionSvc := subscriptionService.NewSubscriptionService(subscriptionRepo)
+	subscriptionHandler := handlers.NewSubscriptionHandler(subscriptionSvc, log)
+
 	// API v1 routes
 	v1 := router.Group("/api/v1")
 	{
@@ -121,6 +125,25 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub, db *pgx
 			{
 				feesProtected.GET("/revenue", feeHandler.GetRevenue)                      // Admin: Get revenue data
 				feesProtected.GET("/transaction/:match_id", feeHandler.GetTransactionFee) // Get transaction fee
+			}
+		}
+
+		// Subscription routes
+		subscriptions := v1.Group("/subscriptions")
+		{
+			// Public endpoints
+			subscriptions.GET("/plans", subscriptionHandler.GetSubscriptionPlans) // Get all plans
+			subscriptions.GET("/savings", subscriptionHandler.CalculateSavings)   // Calculate savings
+
+			// Protected endpoints
+			subscriptionsProtected := subscriptions.Group("")
+			subscriptionsProtected.Use(middleware.AuthMiddleware())
+			{
+				subscriptionsProtected.GET("/current", subscriptionHandler.GetCurrentSubscription) // Get user's subscription
+				subscriptionsProtected.POST("/subscribe", subscriptionHandler.Subscribe)           // Subscribe to plan
+				subscriptionsProtected.POST("/cancel", subscriptionHandler.CancelSubscription)     // Cancel subscription
+				subscriptionsProtected.PUT("/update", subscriptionHandler.UpdateSubscription)      // Update subscription
+				subscriptionsProtected.GET("/transactions", subscriptionHandler.GetTransactions)   // Get transaction history
 			}
 		}
 	}

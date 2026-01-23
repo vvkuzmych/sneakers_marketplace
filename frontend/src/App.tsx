@@ -7,6 +7,7 @@ import { Register } from './features/auth/Register';
 import { ProtectedRoute } from './features/auth/ProtectedRoute';
 import { ProductList } from './features/products/ProductList';
 import BiddingPage from './features/bidding/BiddingPage';
+import SubscriptionPlansPage from './features/subscription/SubscriptionPlansPage';
 
 function App() {
   return (
@@ -62,6 +63,16 @@ function App() {
                       <h1 className="text-3xl font-bold">Profile</h1>
                       <p className="mt-4 text-gray-600">Profile page coming soon...</p>
                     </div>
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Subscription routes */}
+              <Route
+                path="/subscription/plans"
+                element={
+                  <ProtectedRoute>
+                    <SubscriptionPlansPage />
                   </ProtectedRoute>
                 }
               />
