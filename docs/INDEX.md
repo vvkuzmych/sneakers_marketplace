@@ -17,6 +17,7 @@ Welcome to the Sneakers Marketplace documentation!
 - **[GRPC_EXPLAINED.md](GRPC_EXPLAINED.md)** - How gRPC works in this project
 - **[GORM_PACKAGE_COMPLETE.md](GORM_PACKAGE_COMPLETE.md)** - GORM package documentation
 - **[GIT_BEST_PRACTICES.md](GIT_BEST_PRACTICES.md)** - Git best practices (use `git mv`, not `mv`!)
+- **[CONTEXT_USAGE.md](CONTEXT_USAGE.md)** - How to use context.Context properly (logging, tracing, cancellation)
 
 ---
 
@@ -67,6 +68,7 @@ Welcome to the Sneakers Marketplace documentation!
 ## 📧 Production Setup
 
 - **[PRODUCTION_EMAIL_SETUP.md](PRODUCTION_EMAIL_SETUP.md)** - Email configuration for production (SMTP, SendGrid, AWS SES)
+- **[STRIPE_SETUP.md](STRIPE_SETUP.md)** - Stripe payment integration setup guide
 
 ---
 
