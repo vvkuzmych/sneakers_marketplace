@@ -503,9 +503,13 @@ func (s *StripeService) SubscribeUserToPlan(
 	// 3. Get Stripe price ID from plan
 	var stripePriceID string
 	if cycle == model.BillingMonthly {
-		stripePriceID = plan.StripePriceIDMonthly
+		if plan.StripePriceIDMonthly != nil {
+			stripePriceID = *plan.StripePriceIDMonthly
+		}
 	} else {
-		stripePriceID = plan.StripePriceIDYearly
+		if plan.StripePriceIDYearly != nil {
+			stripePriceID = *plan.StripePriceIDYearly
+		}
 	}
 
 	if stripePriceID == "" {

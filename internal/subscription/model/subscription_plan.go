@@ -27,10 +27,10 @@ type SubscriptionPlan struct {
 	MaxMonthlyTransactions *int     `json:"max_monthly_transactions"` // NULL = unlimited
 
 	// Metadata
-	IsActive             bool   `json:"is_active"`
-	SortOrder            int    `json:"sort_order"`
-	StripePriceIDMonthly string `json:"stripe_price_id_monthly,omitempty"`
-	StripePriceIDYearly  string `json:"stripe_price_id_yearly,omitempty"`
+	IsActive             bool    `json:"is_active"`
+	SortOrder            int     `json:"sort_order"`
+	StripePriceIDMonthly *string `json:"stripe_price_id_monthly,omitempty"`
+	StripePriceIDYearly  *string `json:"stripe_price_id_yearly,omitempty"`
 
 	// Timestamps
 	CreatedAt time.Time `json:"created_at"`

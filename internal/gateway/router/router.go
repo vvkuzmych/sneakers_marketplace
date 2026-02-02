@@ -10,6 +10,8 @@ import (
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/handlers"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/middleware"
 	"github.com/vvkuzmych/sneakers_marketplace/internal/gateway/websocket"
+	subscriptionRepository "github.com/vvkuzmych/sneakers_marketplace/internal/subscription/repository"
+	subscriptionService "github.com/vvkuzmych/sneakers_marketplace/internal/subscription/service"
 	"github.com/vvkuzmych/sneakers_marketplace/pkg/logger"
 )
 
@@ -42,9 +44,15 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub, db *pgx
 	orderHandler := handlers.NewOrderHandler(grpcClients.OrderClient)
 	paymentHandler := handlers.NewPaymentHandler(grpcClients.PaymentClient)
 
-	// Initialize fee handler (requires database connection)
+	// Initialize fee handler with subscription-based pricing
 	feeRepo := feeRepository.NewFeeRepository(db)
-	feeHandler := handlers.NewFeeHandler(feeRepo, log)
+	subscriptionRepo := subscriptionRepository.NewPostgresSubscriptionRepository(db)
+	subscriptionFeeProvider := subscriptionService.NewFeeProvider(subscriptionRepo)
+	feeHandler := handlers.NewFeeHandler(feeRepo, log, subscriptionFeeProvider)
+
+	// Initialize subscription handler
+	subscriptionSvc := subscriptionService.NewSubscriptionService(subscriptionRepo)
+	subscriptionHandler := handlers.NewSubscriptionHandler(subscriptionSvc, log)
 
 	// API v1 routes
 	v1 := router.Group("/api/v1")
@@ -117,6 +125,25 @@ func SetupRouter(grpcClients *clients.GRPCClients, wsHub *websocket.Hub, db *pgx
 			{
 				feesProtected.GET("/revenue", feeHandler.GetRevenue)                      // Admin: Get revenue data
 				feesProtected.GET("/transaction/:match_id", feeHandler.GetTransactionFee) // Get transaction fee
+			}
+		}
+
+		// Subscription routes
+		subscriptions := v1.Group("/subscriptions")
+		{
+			// Public endpoints
+			subscriptions.GET("/plans", subscriptionHandler.GetSubscriptionPlans) // Get all plans
+			subscriptions.GET("/savings", subscriptionHandler.CalculateSavings)   // Calculate savings
+
+			// Protected endpoints
+			subscriptionsProtected := subscriptions.Group("")
+			subscriptionsProtected.Use(middleware.AuthMiddleware())
+			{
+				subscriptionsProtected.GET("/current", subscriptionHandler.GetCurrentSubscription) // Get user's subscription
+				subscriptionsProtected.POST("/subscribe", subscriptionHandler.Subscribe)           // Subscribe to plan
+				subscriptionsProtected.POST("/cancel", subscriptionHandler.CancelSubscription)     // Cancel subscription
+				subscriptionsProtected.PUT("/update", subscriptionHandler.UpdateSubscription)      // Update subscription
+				subscriptionsProtected.GET("/transactions", subscriptionHandler.GetTransactions)   // Get transaction history
 			}
 		}
 	}
